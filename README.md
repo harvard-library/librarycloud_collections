@@ -15,9 +15,9 @@ The LibraryCloud Collections API provides access to metadata about groups of ite
 
 Download the code
 
-    ```git clone git@github.com:harvard-library/librarycloud_collections.git```
+    git clone git@github.com:harvard-library/librarycloud_collections.git
 
 Build the application with Maven
 
-    ```mvn clean tomcat7:deploy```
+    mvn clean tomcat7:deploy
 
