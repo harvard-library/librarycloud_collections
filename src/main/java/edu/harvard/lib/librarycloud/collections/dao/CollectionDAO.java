@@ -23,11 +23,8 @@ public class CollectionDAO  {
 
 	public Collection getCollection(Integer id) {
 		Collection result = null;
-		String query = "SELECT c FROM Collection c where c.id = :id";
 		try {
-			result = em.createQuery(query, Collection.class)
-						.setParameter("id", id)
-						.getSingleResult();
+			result = em.find(Collection.class, id);
 		} catch (NoResultException e) {
 			return null;
 		}
@@ -39,6 +36,17 @@ public class CollectionDAO  {
 		em.persist(c);
 		em.flush();
 		return c.getId();
+	}
+
+    @Transactional
+	public boolean deleteCollection(Integer id) {
+		Collection c;
+		c = em.find(Collection.class, id);
+		if (c == null) {
+			return false;
+		}
+		em.remove(c);
+		return true;
 	}
 
 }
