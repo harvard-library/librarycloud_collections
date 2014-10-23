@@ -96,7 +96,6 @@ public class CollectionsAPI {
      * Delete a collection
      */
     @DELETE @Path("collections/{id}")
-    @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteCollection(@PathParam("id") Integer id) {
         boolean result = collectionDao.deleteCollection(id);
         /* Return 204 if successful, 404 if not found. */
