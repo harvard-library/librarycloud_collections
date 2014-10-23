@@ -1,6 +1,7 @@
 package edu.harvard.lib.librarycloud.collections;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -34,7 +35,7 @@ public class CollectionsAPI {
      * Get all collections, or collections matching a query
      */
     @GET @Path("collections") 
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public List<Collection> getCollections() {
         response.setHeader("Access-Control-Allow-Origin", "*");
         if (uriInfo.getRequestUri().getQuery() == null) {
@@ -50,14 +51,14 @@ public class CollectionsAPI {
      * Get a collection
      */
     @GET @Path("collections/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Collection getCollection(@PathParam("id") Integer id) {
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public List<Collection> getCollection(@PathParam("id") Integer id) {
         response.setHeader("Access-Control-Allow-Origin", "*");
         Collection c = collectionDao.getCollection(id);
         if (c == null) {
             throw new NotFoundException();
         }
-        return c;
+        return Collections.singletonList(c);
     }
 
     /**
@@ -74,7 +75,7 @@ public class CollectionsAPI {
      * Create a collection
      */
     @POST @Path("collections")
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response createCollection(Collection collection) {
         Integer id = collectionDao.createCollection(collection);
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
