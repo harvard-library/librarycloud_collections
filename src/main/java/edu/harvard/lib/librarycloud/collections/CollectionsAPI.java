@@ -35,7 +35,7 @@ public class CollectionsAPI {
      * Get all collections, or collections matching a query
      */
     @GET @Path("collections") 
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
     public List<Collection> getCollections() {
         response.setHeader("Access-Control-Allow-Origin", "*");
         if (uriInfo.getRequestUri().getQuery() == null) {
@@ -51,7 +51,7 @@ public class CollectionsAPI {
      * Get a collection
      */
     @GET @Path("collections/{id}")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
     public List<Collection> getCollection(@PathParam("id") Integer id) {
         response.setHeader("Access-Control-Allow-Origin", "*");
         Collection c = collectionDao.getCollection(id);
