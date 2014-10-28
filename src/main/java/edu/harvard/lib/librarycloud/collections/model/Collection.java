@@ -1,6 +1,7 @@
 package edu.harvard.lib.librarycloud.collections.model;
 
 import javax.persistence.*;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity
@@ -10,6 +11,7 @@ public class Collection  {
 	public Collection() {}
 
 	@Id @GeneratedValue
+	@XmlElement(name="id")
 	private int id;
 
 	@Column(nullable = false)
@@ -17,6 +19,7 @@ public class Collection  {
 
 	@Lob
 	private String summary;
+
 
 	public int getId() {
 		return id;
