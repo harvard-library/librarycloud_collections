@@ -37,7 +37,6 @@ public class CollectionsAPI {
     @GET @Path("collections") 
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
     public List<Collection> getCollections() {
-        response.setHeader("Access-Control-Allow-Origin", "*");
         if (uriInfo.getRequestUri().getQuery() == null) {
             List<Collection> collections = collectionDao.getCollections();
             return collections;
@@ -53,7 +52,6 @@ public class CollectionsAPI {
     @GET @Path("collections/{id}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
     public List<Collection> getCollection(@PathParam("id") Integer id) {
-        response.setHeader("Access-Control-Allow-Origin", "*");
         Collection c = collectionDao.getCollection(id);
         if (c == null) {
             throw new NotFoundException();
@@ -67,7 +65,6 @@ public class CollectionsAPI {
     @GET @Path("collections/{id}/items")
     @Produces(MediaType.TEXT_PLAIN)
     public String getItems(@PathParam("id") String id) {
-        response.setHeader("Access-Control-Allow-Origin", "*");
         return "Request for items from collection with id " + id;
     }
 
