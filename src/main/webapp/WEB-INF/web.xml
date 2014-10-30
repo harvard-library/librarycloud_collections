@@ -27,7 +27,7 @@
         </init-param> 
         <init-param>
             <param-name>jersey.config.server.mediaTypeMappings</param-name>
-            <param-value>json : application/json, xml : application/xml</param-value>
+            <param-value>json : application/json, xml : application/xml, jsonp : application/javascript</param-value>
         </init-param>
         <init-param>
             <param-name>jersey.config.feature.Trace</param-name>

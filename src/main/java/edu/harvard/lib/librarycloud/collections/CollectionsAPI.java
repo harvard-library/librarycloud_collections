@@ -12,6 +12,7 @@ import javax.ws.rs.core.Response.*;
 
 import org.apache.log4j.Logger;
 
+import org.glassfish.jersey.server.JSONP;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import edu.harvard.lib.librarycloud.collections.dao.*;
@@ -35,22 +36,24 @@ public class CollectionsAPI {
      * Get all collections, or collections matching a query
      */
     @GET @Path("collections") 
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
+    @JSONP(queryParam = "callback")
+    @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
     public List<Collection> getCollections() {
+        List<Collection> collections;
         if (uriInfo.getRequestUri().getQuery() == null) {
-            List<Collection> collections = collectionDao.getCollections();
-            return collections;
+            collections = collectionDao.getCollections();
         } else {
-            List<Collection> collections = collectionDao.getCollections();
-            return collections;
+            collections = collectionDao.getCollections();
         }
+        return collections;
     }
 
     /**
      * Get a collection
      */
     @GET @Path("collections/{id}")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
+    @JSONP(queryParam = "callback")
+    @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
     public List<Collection> getCollection(@PathParam("id") Integer id) {
         Collection c = collectionDao.getCollection(id);
         if (c == null) {
