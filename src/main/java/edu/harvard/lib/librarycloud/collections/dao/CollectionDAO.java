@@ -70,6 +70,9 @@ public class CollectionDAO  {
 			return false;
 		}
 		CollectionItem i = em.find(CollectionItem.class, item_id);
+		if ((i == null) || !i.getCollection().equals(c)) {
+			return false;
+		}
 		c.removeItem(i);
 		em.remove(i);
 		em.persist(c);
