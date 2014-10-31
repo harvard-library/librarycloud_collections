@@ -87,7 +87,7 @@ public class CollectionsAPI {
      * Update a collection
      */
     @PUT @Path("collections/{id}")
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response updateCollection(@PathParam("id") String id) {
         return Response.ok().build();        
     }
@@ -106,19 +106,26 @@ public class CollectionsAPI {
      * Add item(s) to a collection
      */
     @POST @Path("collections/{id}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response addItems() {
-        return Response.ok().build();        
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response addItems(@PathParam("id") Integer id, List<CollectionItem> collectionItems) {
+        for (CollectionItem c : collectionItems) {
+            boolean result = collectionDao.addToCollection(id, c);
+            if (!result) {
+                return Response.status(Status.NOT_FOUND).build();
+            }    
+        }
+        return Response.status(Status.NO_CONTENT).build();
     }
 
     /**
      * Remove items from a collection
      */
     @DELETE @Path("collections/{id}/items/{itemid}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response removeItem(@PathParam("id") String id, 
-                               @PathParam("itemid") String item_id) {
-        return Response.ok().build();        
+    public Response removeItem(@PathParam("id") Integer id, 
+                               @PathParam("itemid") Integer item_id) {
+        boolean result = collectionDao.removeFromCollection(id, item_id);
+        /* Return 204 if successful, 404 if not found. */
+        return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();        
     }
 
 }

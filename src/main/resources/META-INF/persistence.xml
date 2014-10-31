@@ -15,5 +15,6 @@
 
     	</properties>
         <class>edu.harvard.lib.librarycloud.collections.model.Collection</class>
+        <class>edu.harvard.lib.librarycloud.collections.model.CollectionItem</class>
     </persistence-unit>
 </persistence>

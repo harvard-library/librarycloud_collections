@@ -49,4 +49,32 @@ public class CollectionDAO  {
 		return true;
 	}
 
+	@Transactional
+	public boolean addToCollection(Integer id, CollectionItem item) {
+		Collection c;
+		c = em.find(Collection.class, id);
+		if (c == null) {
+			return false;
+		}
+		c.addItem(item);
+		em.persist(c);
+		em.flush();
+		return true;
+	}
+
+	@Transactional
+	public boolean removeFromCollection(Integer id, Integer item_id) {
+		Collection c;
+		c = em.find(Collection.class, id);
+		if (c == null) {
+			return false;
+		}
+		CollectionItem i = em.find(CollectionItem.class, item_id);
+		c.removeItem(i);
+		em.remove(i);
+		em.persist(c);
+		em.flush();
+		return true;
+	}
+
 }

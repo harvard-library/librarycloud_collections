@@ -1,5 +1,6 @@
 package edu.harvard.lib.librarycloud.collections.model;
 
+import java.util.List;
 import javax.persistence.*;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -53,6 +54,9 @@ public class Collection  {
 	@Id @GeneratedValue
 	private int id;
 
+    @OneToMany(mappedBy = "collection", cascade = CascadeType.ALL)
+    private List<CollectionItem> items;
+
 	@Column(nullable = false)
 	private String title;
 
@@ -72,6 +76,28 @@ public class Collection  {
 	@XmlElement(namespace="http://purl.org/dc/elements/1.1", name="identifier")
 	public int getId() {
 		return id;
+	}
+
+	public List<CollectionItem> getItems() {
+		return items;
+	}
+
+	public void addItem(CollectionItem item) {
+
+		/* Do not add if the item already exists */
+		for (CollectionItem i : items) {
+			if (i.getItemId().equals(item.getItemId())) {
+				return;
+			}
+		}
+		item.setCollection(this);
+		items.add(item);
+	}
+
+	public void removeItem(CollectionItem item) {
+		if (items.contains(item)) {
+			items.remove(item);
+		}
 	}
 
 	@XmlElement(namespace="http://purl.org/dc/elements/1.1", name="type")
