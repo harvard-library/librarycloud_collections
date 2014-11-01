@@ -21,27 +21,15 @@
             <param-name>jersey.config.server.provider.packages</param-name>
             <param-value>edu.harvard.lib.librarycloud.collections</param-value>
         </init-param>
-        <init-param>
-            <param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name>
-            <param-value>true</param-value>
-        </init-param> 
-        <init-param>
-            <param-name>jersey.config.server.mediaTypeMappings</param-name>
-            <param-value>json : application/json, xml : application/xml, jsonp : application/javascript</param-value>
-        </init-param>
-        <init-param>
-            <param-name>jersey.config.feature.Trace</param-name>
-            <param-value>true</param-value>
-        </init-param>
-        <load-on-startup>1</load-on-startup>
-        <init-param>
+<!--         <init-param>
             <param-name>jersey.config.server.provider.classnames</param-name>
             <param-value>org.glassfish.jersey.filter.LoggingFilter</param-value>
         </init-param>
-        <init-param>
-            <param-name>com.sun.jersey.spi.container.ContainerResponseFilters</param-name>
-            <param-value>com.sun.jersey.api.container.filter.LoggingFilter;edu.harvard.lib.librarycloud.collections.CORSResponseFilter</param-value>
+ -->        <init-param>
+            <param-name>jersey.config.server.mediaTypeMappings</param-name>
+            <param-value>json : application/json, xml : application/xml, jsonp : application/javascript</param-value>
         </init-param>
+        <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet-mapping>
         <servlet-name>LibraryCloudCollectionsAPI</servlet-name>
