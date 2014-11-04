@@ -21,6 +21,15 @@ public class CollectionDAO  {
 		return result;
 	}
 
+	public List<Collection> getCollectionsForItem(String external_item_id) {
+		String query = "SELECT DISTINCT c FROM Collection c INNER JOIN c.items i " +
+					   "WHERE i.itemId = :external_item_id";
+		List<Collection> result = em.createQuery(query, Collection.class)
+									 .setParameter("external_item_id", external_item_id)
+									 .getResultList();
+		return result;
+	}
+
 	public Collection getCollection(Integer id) {
 		Collection result = null;
 		try {

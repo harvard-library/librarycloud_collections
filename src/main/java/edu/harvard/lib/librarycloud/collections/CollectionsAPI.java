@@ -38,12 +38,12 @@ public class CollectionsAPI {
     @GET @Path("collections") 
     @JSONP(queryParam = "callback")
     @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
-    public List<Collection> getCollections() {
+    public List<Collection> getCollections(@QueryParam("contains") String contains) {
         List<Collection> collections;
-        if (uriInfo.getRequestUri().getQuery() == null) {
-            collections = collectionDao.getCollections();
+        if (contains != null) {
+            collections = collectionDao.getCollectionsForItem(contains);
         } else {
-            collections = collectionDao.getCollections();
+            collections = collectionDao.getCollections();            
         }
         return collections;
     }
