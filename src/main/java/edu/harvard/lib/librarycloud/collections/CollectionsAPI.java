@@ -62,6 +62,18 @@ public class CollectionsAPI {
         return Collections.singletonList(c);
     }
 
+    /** 
+     * Get items, and their associated collections.
+     */
+    @GET @Path("collectionitems")
+    @JSONP(queryParam = "callback")
+    @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
+    public List<Item> getCollectionItems(@PathParam("ids") String ids) {
+        List<Item> ci = collectionDao.getItems(ids);
+        return ci;
+    }
+
+
     /**
      * Get items in a collection
      */
@@ -107,9 +119,9 @@ public class CollectionsAPI {
      */
     @POST @Path("collections/{id}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response addItems(@PathParam("id") Integer id, List<CollectionItem> collectionItems) {
-        for (CollectionItem c : collectionItems) {
-            boolean result = collectionDao.addToCollection(id, c);
+    public Response addItems(@PathParam("id") Integer id, List<Item> items) {
+        for (Item item : items) {
+            boolean result = collectionDao.addToCollection(id, item);
             if (!result) {
                 return Response.status(Status.NOT_FOUND).build();
             }    
@@ -122,8 +134,8 @@ public class CollectionsAPI {
      */
     @DELETE @Path("collections/{id}/items/{itemid}")
     public Response removeItem(@PathParam("id") Integer id, 
-                               @PathParam("itemid") Integer item_id) {
-        boolean result = collectionDao.removeFromCollection(id, item_id);
+                               @PathParam("itemid") String external_item_id) {
+        boolean result = collectionDao.removeFromCollection(id, external_item_id);
         /* Return 204 if successful, 404 if not found. */
         return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();        
     }

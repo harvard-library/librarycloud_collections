@@ -4,11 +4,13 @@ import java.util.List;
 import java.util.ArrayList;
 import javax.persistence.*;
 
-import edu.harvard.lib.librarycloud.collections.model.*;
-
+import org.apache.log4j.Logger;
 import org.springframework.transaction.annotation.Transactional;
 
+import edu.harvard.lib.librarycloud.collections.model.*;
+
 public class CollectionDAO  {
+    Logger log = Logger.getLogger(CollectionDAO.class); 
 
     @PersistenceContext
     private EntityManager em;
@@ -29,6 +31,12 @@ public class CollectionDAO  {
 									 .getResultList();
 		return result;
 	}
+
+	public List<Item> getItems(String ids) {
+		String query = "SELECT i FROM Item i";
+		List<Item> result = em.createQuery(query, Item.class).getResultList();
+		return result;
+	}	
 
 	public Collection getCollection(Integer id) {
 		Collection result = null;
@@ -59,31 +67,46 @@ public class CollectionDAO  {
 	}
 
 	@Transactional
-	public boolean addToCollection(Integer id, CollectionItem item) {
+	public boolean addToCollection(Integer id, Item item) {
 		Collection c;
 		c = em.find(Collection.class, id);
 		if (c == null) {
 			return false;
 		}
-		c.addItem(item);
+		List<Item> persistentItems = em.createQuery("SELECT i FROM Item i WHERE i.itemId = :external_item_id")
+								 		.setParameter("external_item_id", item.getItemId())
+								 		.getResultList();
+		/* Check whether a matching item already exists. We should never have more than 1 */
+		if (persistentItems != null && persistentItems.size() == 1) {
+			c.addItem(persistentItems.get(0));
+		} else {
+			c.addItem(item);
+		}
 		em.persist(c);
 		em.flush();
 		return true;
 	}
 
 	@Transactional
-	public boolean removeFromCollection(Integer id, Integer item_id) {
+	public boolean removeFromCollection(Integer id, String external_item_id) {
 		Collection c;
 		c = em.find(Collection.class, id);
 		if (c == null) {
 			return false;
 		}
-		CollectionItem i = em.find(CollectionItem.class, item_id);
-		if ((i == null) || !i.getCollection().equals(c)) {
+		List<Item> items = em.createQuery("SELECT i FROM Item i WHERE i.itemId = :external_item_id")
+								 		.setParameter("external_item_id", external_item_id)
+								 		.getResultList();
+
+		Item item = null;
+		/* There should be at most one item matching the external id */
+		if (items != null && items.size() == 1) {
+			item = items.get(0);
+		}
+		if ((item == null) || !item.getCollections().contains(c)) {
 			return false;
 		}
-		c.removeItem(i);
-		em.remove(i);
+		c.removeItem(item);
 		em.persist(c);
 		em.flush();
 		return true;

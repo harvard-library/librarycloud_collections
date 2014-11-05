@@ -41,11 +41,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 		Associated Publication [dcterms:isReferencedBy]
 
 		TOOD: Include all fields
-		T
 */
 
 
 @Entity
+@Table(name="collection")
 @XmlRootElement(namespace = "http://api.lib.harvard.edu/v2/collection/", name="collection")
 public class Collection  {
 
@@ -54,8 +54,9 @@ public class Collection  {
 	@Id @GeneratedValue
 	private int id;
 
-    @OneToMany(mappedBy = "collection", cascade = CascadeType.ALL)
-    private List<CollectionItem> items;
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(name="collection_item")
+    private List<Item> items;
 
 	@Column(nullable = false)
 	private String title;
@@ -78,23 +79,23 @@ public class Collection  {
 		return id;
 	}
 
-	public List<CollectionItem> getItems() {
+	public List<Item> getItems() {
 		return items;
 	}
 
-	public void addItem(CollectionItem item) {
+	public void addItem(Item item) {
 
 		/* Do not add if the item already exists */
-		for (CollectionItem i : items) {
+		for (Item i : items) {
 			if (i.getItemId().equals(item.getItemId())) {
 				return;
 			}
 		}
-		item.setCollection(this);
+		// item.setCollection(this);
 		items.add(item);
 	}
 
-	public void removeItem(CollectionItem item) {
+	public void removeItem(Item item) {
 		if (items.contains(item)) {
 			items.remove(item);
 		}
