@@ -1,5 +1,6 @@
 package edu.harvard.lib.librarycloud.collections.dao;
 
+
 import java.util.List;
 import java.util.ArrayList;
 import javax.persistence.*;
@@ -60,7 +61,12 @@ public class CollectionDAO  {
 		Collection hydratedCollection;
 		try {
 			hydratedCollection = em.find(Collection.class, id);
-			hydratedCollection.setTitle(c.getTitle()); //cannot be null
+			if(hydratedCollection == null)
+				return null;
+
+
+			if(c.getTitle() != null && c.getTitle() != "")
+				hydratedCollection.setTitle(c.getTitle()); //cannot be null
 			
 			if(c.getSummary() != null)
 				hydratedCollection.setSummary(c.getSummary());
@@ -74,8 +80,6 @@ public class CollectionDAO  {
 			if(c.getAccessRights() != null)
 				hydratedCollection.setAccessRights(c.getAccessRights());
 
-
-			//todo: figure out how to check whether or not other fields were returned. Extent, I'm looking at you....
 			em.persist(hydratedCollection);
 			em.flush();
 		} catch(NoResultException e){

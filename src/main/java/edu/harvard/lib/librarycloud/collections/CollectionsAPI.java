@@ -100,8 +100,17 @@ public class CollectionsAPI {
      */
     @PUT @Path("collections/{id}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Collection updateCollection(Collection collection, @PathParam("id") String id) {
-        return collectionDao.updateCollection(collection, Integer.parseInt(id));
+    public Response updateCollection(@PathParam("id") String id, Collection collection) {
+    	
+    	Collection result = collectionDao.updateCollection(collection, Integer.parseInt(id));
+    	if(result != null){
+            UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
+            URI uri = uriBuilder.path(id.toString()).build();
+            return Response.created(uri).build();        
+
+        }
+
+        return Response.status(Status.NOT_FOUND).build();
         
     }
 
