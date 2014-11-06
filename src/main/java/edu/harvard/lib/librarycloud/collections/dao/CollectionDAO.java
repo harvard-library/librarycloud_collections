@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import javax.persistence.*;
 
 import org.apache.log4j.Logger;
+import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import edu.harvard.lib.librarycloud.collections.model.*;
@@ -64,25 +65,25 @@ public class CollectionDAO  {
 			if(hydratedCollection == null)
 				return null;
 
-
-			if(c.getTitle() != null && c.getTitle() != "")
-				hydratedCollection.setTitle(c.getTitle()); //cannot be null
+			List<String> propertiesToCopy = new ArrayList<String>();
+			propertiesToCopy.add("title");
+			propertiesToCopy.add("summary");
+			propertiesToCopy.add("rights");
+			propertiesToCopy.add("accessRights");
+			propertiesToCopy.add("language");
 			
-			if(c.getSummary() != null)
-				hydratedCollection.setSummary(c.getSummary());
 			
-			if(c.getRights() != null)
-				hydratedCollection.setRights(c.getRights());
-
-			if(c.getLanguage() != null)
-				hydratedCollection.setLanguage(c.getLanguage());
-
-			if(c.getAccessRights() != null)
-				hydratedCollection.setAccessRights(c.getAccessRights());
-
+			for (String property : propertiesToCopy)
+			{
+				if(PropertyUtils.getProperty(c, property)!= null)
+				{
+					PropertyUtils.setProperty(hydratedCollection, property, PropertyUtils.getProperty(c, property));
+				}
+			}
 			em.persist(hydratedCollection);
 			em.flush();
-		} catch(NoResultException e){
+
+		} catch(Exception e){
 			return null;
 		}
 		return hydratedCollection;
