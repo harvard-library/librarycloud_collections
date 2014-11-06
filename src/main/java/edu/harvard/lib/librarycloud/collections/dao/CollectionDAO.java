@@ -55,6 +55,36 @@ public class CollectionDAO  {
 		return c.getId();
 	}
 
+	@Transactional
+	public Collection updateCollection(Collection c, Integer id){
+		Collection hydratedCollection;
+		try {
+			hydratedCollection = em.find(Collection.class, id);
+			hydratedCollection.setTitle(c.getTitle()); //cannot be null
+			
+			if(c.getSummary() != null)
+				hydratedCollection.setSummary(c.getSummary());
+			
+			if(c.getRights() != null)
+				hydratedCollection.setRights(c.getRights());
+
+			if(c.getLanguage() != null)
+				hydratedCollection.setLanguage(c.getLanguage());
+
+			if(c.getAccessRights() != null)
+				hydratedCollection.setAccessRights(c.getAccessRights());
+
+
+			//todo: figure out how to check whether or not other fields were returned. Extent, I'm looking at you....
+			em.persist(hydratedCollection);
+			em.flush();
+		} catch(NoResultException e){
+			return null;
+		}
+		return hydratedCollection;
+	
+	}
+
     @Transactional
 	public boolean deleteCollection(Integer id) {
 		Collection c;

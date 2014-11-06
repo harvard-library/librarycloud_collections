@@ -100,8 +100,9 @@ public class CollectionsAPI {
      */
     @PUT @Path("collections/{id}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response updateCollection(@PathParam("id") String id) {
-        return Response.ok().build();        
+    public Collection updateCollection(Collection collection, @PathParam("id") String id) {
+        return collectionDao.updateCollection(collection, Integer.parseInt(id));
+        
     }
 
     /**
