@@ -2,6 +2,8 @@ package edu.harvard.lib.librarycloud.collections;
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -64,12 +66,21 @@ public class CollectionsAPI {
 
     /** 
      * Get items, and their associated collections.
+     * 'external_ids' is a comma-separated list of canonical item IDs (e.g. the ids of items
+     * in the source system)
      */
-    @GET @Path("collectionitems")
+    @GET @Path("collections/items/{external_ids}")
     @JSONP(queryParam = "callback")
     @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
-    public List<Item> getCollectionItems(@PathParam("ids") String ids) {
-        List<Item> ci = collectionDao.getItems(ids);
+    public List<Item> getItems(@PathParam("external_ids") String external_ids) {
+        List<String> external_id_list = new ArrayList<String>(Arrays.asList(external_ids.split(",")));
+        if (external_id_list.isEmpty()) {
+            throw new NotFoundException();
+        }
+        List<Item> ci = collectionDao.getItems(external_id_list);
+        if (ci == null || ci.isEmpty()) {
+            throw new NotFoundException();
+        }
         return ci;
     }
 
@@ -79,7 +90,7 @@ public class CollectionsAPI {
      */
     @GET @Path("collections/{id}/items")
     @Produces(MediaType.TEXT_PLAIN)
-    public String getItems(@PathParam("id") String id) {
+    public String getItemsByCollection(@PathParam("id") String id) {
         return "Request for items from collection with id " + id;
     }
 
