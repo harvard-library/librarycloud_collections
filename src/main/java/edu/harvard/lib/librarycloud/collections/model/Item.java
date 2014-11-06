@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity
 @Table(name="item")
-@XmlRootElement(namespace = "http://api.lib.harvard.edu/v2/collection/", name="collection")
+@XmlRootElement(namespace = "http://api.lib.harvard.edu/v2/collection/", name="item")
 public class Item  {
 
 	public Item() {}
