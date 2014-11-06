@@ -5,6 +5,8 @@ import javax.persistence.*;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.eclipse.persistence.oxm.annotations.XmlInverseReference;
+
 /* Implements a subset of the Dublin Core Collections Application Profile (DCCAP)
 
 	Complete list of fields in the DCCAP:
@@ -79,8 +81,13 @@ public class Collection  {
 		return id;
 	}
 
+	@XmlInverseReference(mappedBy="collections")
 	public List<Item> getItems() {
 		return items;
+	}
+
+	public void setItems(List<Item> items) {
+		this.items = items;
 	}
 
 	public void addItem(Item item) {

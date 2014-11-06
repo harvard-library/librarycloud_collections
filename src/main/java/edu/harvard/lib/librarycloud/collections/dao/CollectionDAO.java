@@ -33,7 +33,7 @@ public class CollectionDAO  {
 	}
 
 	public List<Item> getItems(String ids) {
-		String query = "SELECT i FROM Item i";
+		String query = "SELECT i FROM Item i LEFT JOIN FETCH i.collections";
 		List<Item> result = em.createQuery(query, Item.class).getResultList();
 		return result;
 	}	
