@@ -1,5 +1,6 @@
 package edu.harvard.lib.librarycloud.collections.dao;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 import javax.persistence.*;
@@ -23,6 +24,11 @@ public class CollectionDAO  {
 		return result;
 	}
 
+	/**
+	 * Get all the collections that contain a particular item
+	 * @param  external_item_id ID of the item to look for
+	 * @return                  List of Collections containing the item
+	 */
 	public List<Collection> getCollectionsForItem(String external_item_id) {
 		String query = "SELECT DISTINCT c FROM Collection c INNER JOIN c.items i " +
 					   "WHERE i.itemId = :external_item_id";
@@ -32,12 +38,24 @@ public class CollectionDAO  {
 		return result;
 	}
 
-	public List<Item> getItems(String ids) {
-		String query = "SELECT i FROM Item i LEFT JOIN FETCH i.collections";
-		List<Item> result = em.createQuery(query, Item.class).getResultList();
+	/**
+	 * Retrieve items and associated collections based on list of IDs
+	 * @param  external_id_list List of IDs to lookup. These are IDs from the source system, not internal IDs
+	 * @return              	List of matching Item objects with populated Collections
+	 */
+	public List<Item> getItems(List<String> external_id_list) {
+		String query = "SELECT i FROM Item i LEFT JOIN FETCH i.collections WHERE i.itemId IN :external_id_list";
+		List<Item> result = em.createQuery(query, Item.class)
+								.setParameter("external_id_list", external_id_list)
+								.getResultList();
 		return result;
 	}	
 
+	/**
+	 * Get an individual collection by ID
+	 * @param  id Internal ID of the collection
+	 * @return    Populated Collection, or null if not found
+	 */
 	public Collection getCollection(Integer id) {
 		Collection result = null;
 		try {

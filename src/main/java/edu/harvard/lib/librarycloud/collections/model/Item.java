@@ -4,10 +4,12 @@ import java.util.List;
 import javax.persistence.*;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 @Entity
 @Table(name="item")
 @XmlRootElement(namespace = "http://api.lib.harvard.edu/v2/collection/", name="item")
+@XmlType (propOrder={"itemId","collections"})
 public class Item  {
 
 	public Item() {}
@@ -21,7 +23,6 @@ public class Item  {
 	@ManyToMany(mappedBy="items")
 	private List<Collection> collections;
 
-	@XmlElement(name="identifier")
 	public int getId() {
 		return id;
 	}
