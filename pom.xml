@@ -29,17 +29,11 @@
                     <target>1.7</target>
                 </configuration>
             </plugin>
-<!--              <plugin>
+             <plugin>
                 <groupId>org.apache.openjpa</groupId>
                 <artifactId>openjpa-maven-plugin</artifactId>
-                <version>2.2.2</version>
-                <configuration>
-                    <includes>**/entities/*.class</includes>
-                    <excludes>**/entities/XML*.class</excludes>
-                    <addDefaultConstructor>true</addDefaultConstructor>               
-                    <enforcePropertyRestrictions>true</enforcePropertyRestrictions>
-                </configuration>
-                <executions>
+                <version>${openjpa.version}</version>
+                 <executions>
                     <execution>
                         <id>enhancer</id>
                         <phase>process-classes</phase>
@@ -56,7 +50,7 @@
                     </dependency>
                 </dependencies>
             </plugin>
- -->            <plugin>  
+            <plugin>  
                 <groupId>org.apache.tomcat.maven</groupId>  
                 <artifactId>tomcat7-maven-plugin</artifactId>  
                 <version>2.2</version>  
