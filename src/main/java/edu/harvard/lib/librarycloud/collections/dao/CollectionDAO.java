@@ -57,7 +57,7 @@ public class CollectionDAO  {
 	}
 
 	@Transactional
-	public Collection updateCollection(Collection c, Integer id){
+	public Collection updateCollection(Integer id, Collection c){
 		Collection hydratedCollection;
 		try {
 			hydratedCollection = em.find(Collection.class, id);

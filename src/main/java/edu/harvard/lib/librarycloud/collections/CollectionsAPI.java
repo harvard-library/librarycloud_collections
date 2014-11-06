@@ -102,7 +102,7 @@ public class CollectionsAPI {
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response updateCollection(@PathParam("id") String id, Collection collection) {
     	
-    	Collection result = collectionDao.updateCollection(collection, Integer.parseInt(id));
+    	Collection result = collectionDao.updateCollection(Integer.parseInt(id),collection);
     	if(result != null){
             UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
             URI uri = uriBuilder.path(id.toString()).build();
