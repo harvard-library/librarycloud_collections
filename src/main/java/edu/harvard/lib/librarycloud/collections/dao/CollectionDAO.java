@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import javax.persistence.*;
 
 import org.apache.log4j.Logger;
+import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import edu.harvard.lib.librarycloud.collections.model.*;
@@ -71,6 +72,39 @@ public class CollectionDAO  {
 		em.persist(c);
 		em.flush();
 		return c.getId();
+	}
+
+	@Transactional
+	public Collection updateCollection(Integer id, Collection c){
+		Collection hydratedCollection;
+		try {
+			hydratedCollection = em.find(Collection.class, id);
+			if(hydratedCollection == null)
+				return null;
+
+			List<String> propertiesToCopy = new ArrayList<String>();
+			propertiesToCopy.add("title");
+			propertiesToCopy.add("summary");
+			propertiesToCopy.add("rights");
+			propertiesToCopy.add("accessRights");
+			propertiesToCopy.add("language");
+			
+			
+			for (String property : propertiesToCopy)
+			{
+				if(PropertyUtils.getProperty(c, property)!= null)
+				{
+					PropertyUtils.setProperty(hydratedCollection, property, PropertyUtils.getProperty(c, property));
+				}
+			}
+			em.persist(hydratedCollection);
+			em.flush();
+
+		} catch(Exception e){
+			return null;
+		}
+		return hydratedCollection;
+	
 	}
 
     @Transactional
