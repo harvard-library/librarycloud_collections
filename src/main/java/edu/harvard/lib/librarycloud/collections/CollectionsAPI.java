@@ -96,14 +96,6 @@ public class CollectionsAPI {
         return results;
     }
 
-    @GET @Path("collections/{id}/availableItems")
-    @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public List<Item> getAvailableItemsByCollection(@PathParam("id") String id) {
-
-        List<Item> results = collectionDao.getAvailableItemsByCollection(Integer.parseInt(id));
-        return results;
-    }
-
     /**
      * Create a collection
      */
