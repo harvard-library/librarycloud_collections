@@ -89,9 +89,19 @@ public class CollectionsAPI {
      * Get items in a collection
      */
     @GET @Path("collections/{id}/items")
-    @Produces(MediaType.TEXT_PLAIN)
-    public String getItemsByCollection(@PathParam("id") String id) {
-        return "Request for items from collection with id " + id;
+    @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public List<Item> getItemsByCollection(@PathParam("id") String id) {
+
+        List<Item> results = collectionDao.getItemsByCollection(Integer.parseInt(id));
+        return results;
+    }
+
+    @GET @Path("collections/{id}/availableItems")
+    @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public List<Item> getAvailableItemsByCollection(@PathParam("id") String id) {
+
+        List<Item> results = collectionDao.getAvailableItemsByCollection(Integer.parseInt(id));
+        return results;
     }
 
     /**
@@ -117,7 +127,7 @@ public class CollectionsAPI {
     	if(result != null){
             UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
             URI uri = uriBuilder.path(id.toString()).build();
-            return Response.created(uri).build();        
+            return Response.status(Status.NO_CONTENT).build(); 
 
         }
 

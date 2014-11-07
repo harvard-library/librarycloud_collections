@@ -52,6 +52,24 @@ public class CollectionDAO  {
 		return result;
 	}	
 
+	public List<Item> getItemsByCollection(Integer id)
+	{
+		String query = "select i from Collection c JOIN c.items i WHERE c.id = :collectionId";
+		List<Item> result = em.createQuery(query, Item.class)
+								.setParameter("collectionId",id)
+								.getResultList();
+		return result;
+	}
+
+	public List<Item> getAvailableItemsByCollection(Integer id)
+	{
+		String query = "select DISTINCT i from Item i LEFT JOIN i.collections c WHERE COALESCE(c.id,0) <> :collectionId";
+		List<Item> result = em.createQuery(query, Item.class)
+								.setParameter("collectionId",id)
+								.getResultList();
+		return result;
+	}
+
 	/**
 	 * Get an individual collection by ID
 	 * @param  id Internal ID of the collection
