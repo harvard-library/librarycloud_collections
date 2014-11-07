@@ -52,6 +52,11 @@ public class CollectionDAO  {
 		return result;
 	}	
 
+	/**
+	 * Retrieve items associated with a collection based on the collectionId.
+	 * @param  id Id of the collection.
+	 * @return List of matching Item objects.
+	 */
 	public List<Item> getItemsByCollection(Integer id)
 	{
 		String query = "select i from Collection c JOIN c.items i WHERE c.id = :collectionId";

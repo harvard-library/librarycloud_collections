@@ -89,10 +89,10 @@ public class CollectionsAPI {
      * Get items in a collection
      */
     @GET @Path("collections/{id}/items")
-    @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public List<Item> getItemsByCollection(@PathParam("id") String id) {
+    @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
+    public List<Item> getItemsByCollection(@PathParam("id") Integer id) {
 
-        List<Item> results = collectionDao.getItemsByCollection(Integer.parseInt(id));
+        List<Item> results = collectionDao.getItemsByCollection(id);
         return results;
     }
 
@@ -117,8 +117,6 @@ public class CollectionsAPI {
     	
     	Collection result = collectionDao.updateCollection(Integer.parseInt(id),collection);
     	if(result != null){
-            UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
-            URI uri = uriBuilder.path(id.toString()).build();
             return Response.status(Status.NO_CONTENT).build(); 
 
         }
