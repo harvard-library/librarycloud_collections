@@ -79,7 +79,7 @@ public class CollectionDAO  {
 		Collection hydratedCollection;
 		try {
 			hydratedCollection = em.find(Collection.class, id);
-			if(hydratedCollection == null)
+			if (hydratedCollection == null)
 				return null;
 
 			List<String> propertiesToCopy = new ArrayList<String>();
@@ -89,22 +89,18 @@ public class CollectionDAO  {
 			propertiesToCopy.add("accessRights");
 			propertiesToCopy.add("language");
 			
-			
-			for (String property : propertiesToCopy)
-			{
-				if(PropertyUtils.getProperty(c, property)!= null)
-				{
+			for (String property : propertiesToCopy) {
+				if (PropertyUtils.getProperty(c, property)!= null) {
 					PropertyUtils.setProperty(hydratedCollection, property, PropertyUtils.getProperty(c, property));
 				}
 			}
 			em.persist(hydratedCollection);
 			em.flush();
 
-		} catch(Exception e){
+		} catch (Exception e) {
 			return null;
 		}
-		return hydratedCollection;
-	
+		return hydratedCollection;	
 	}
 
     @Transactional

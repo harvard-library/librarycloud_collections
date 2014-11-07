@@ -114,15 +114,12 @@ public class CollectionsAPI {
     public Response updateCollection(@PathParam("id") String id, Collection collection) {
     	
     	Collection result = collectionDao.updateCollection(Integer.parseInt(id),collection);
-    	if(result != null){
+    	if (result != null) {
             UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
             URI uri = uriBuilder.path(id.toString()).build();
             return Response.created(uri).build();        
-
         }
-
         return Response.status(Status.NOT_FOUND).build();
-        
     }
 
     /**
