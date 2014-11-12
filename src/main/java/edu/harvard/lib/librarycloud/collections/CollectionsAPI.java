@@ -121,6 +121,7 @@ public class CollectionsAPI {
                 collectionsWorkflow.notify(result);
             } catch (Exception e) {
                 log.error(e);
+                e.printStackTrace();
             }
             UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
             URI uri = uriBuilder.path(id.toString()).build();
@@ -144,6 +145,7 @@ public class CollectionsAPI {
                 }
             } catch (Exception e) {
                 log.error(e);
+                e.printStackTrace();
             }
         }
         /* Return 204 if successful, 404 if not found. */
@@ -165,6 +167,7 @@ public class CollectionsAPI {
                     collectionsWorkflow.notify(item.getItemId());
                 } catch (Exception e) {
                     log.error(e);
+                    e.printStackTrace();
                 }
             }   
         }
@@ -183,6 +186,7 @@ public class CollectionsAPI {
                 collectionsWorkflow.notify(external_item_id);    
             } catch (Exception e) {
                 log.error(e);
+                e.printStackTrace();
             }
         }
         

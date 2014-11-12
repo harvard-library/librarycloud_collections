@@ -42,7 +42,14 @@ public class CollectionsWorkflow {
 
 		log.error(external_item_id);
 		Item item = collectionDao.getItem(external_item_id);
-		log.error(item);
+
+		/* If no item returned perhaps because the item belonged only 
+		   to a single collection which is now delete, setup an empty 
+		   item with no collections as the update */
+		if (item == null) {
+			item = new Item();
+			item.setItemId(external_item_id);
+		}
 		String s = StringEscapeUtils.escapeXml(marshalItem(item));
 		String message = String.format(UPDATE_TEMPLATE,s);
 
