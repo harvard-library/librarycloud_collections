@@ -34,6 +34,9 @@ public class CollectionsAPI {
     @Autowired
     private CollectionDAO collectionDao;
 
+    @Autowired
+    private CollectionsWorkflow collectionsWorkflow;
+
     /**
      * Get all collections, or collections matching a query
      */
@@ -84,7 +87,6 @@ public class CollectionsAPI {
         return ci;
     }
 
-
     /**
      * Get items in a collection
      */
@@ -115,6 +117,11 @@ public class CollectionsAPI {
     	
     	Collection result = collectionDao.updateCollection(Integer.parseInt(id),collection);
     	if (result != null) {
+            try {
+                collectionsWorkflow.notify(result);
+            } catch (Exception e) {
+                log.error(e);
+            }
             UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
             URI uri = uriBuilder.path(id.toString()).build();
             return Response.created(uri).build();        
@@ -127,7 +134,18 @@ public class CollectionsAPI {
      */
     @DELETE @Path("collections/{id}")
     public Response deleteCollection(@PathParam("id") Integer id) {
+        Collection c = collectionDao.getCollection(id);
+        List<Item> items = collectionDao.getItems(c);
         boolean result = collectionDao.deleteCollection(id);
+        if (result) {
+            try {
+                for (Item item : items) {
+                    collectionsWorkflow.notify(item.getItemId());
+                }
+            } catch (Exception e) {
+                log.error(e);
+            }
+        }
         /* Return 204 if successful, 404 if not found. */
         return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();        
     }
@@ -142,7 +160,13 @@ public class CollectionsAPI {
             boolean result = collectionDao.addToCollection(id, item);
             if (!result) {
                 return Response.status(Status.NOT_FOUND).build();
-            }    
+            } else {
+                try {
+                    collectionsWorkflow.notify(item.getItemId());
+                } catch (Exception e) {
+                    log.error(e);
+                }
+            }   
         }
         return Response.status(Status.NO_CONTENT).build();
     }
@@ -154,6 +178,14 @@ public class CollectionsAPI {
     public Response removeItem(@PathParam("id") Integer id, 
                                @PathParam("itemid") String external_item_id) {
         boolean result = collectionDao.removeFromCollection(id, external_item_id);
+        if (result) {
+            try {
+                collectionsWorkflow.notify(external_item_id);    
+            } catch (Exception e) {
+                log.error(e);
+            }
+        }
+        
         /* Return 204 if successful, 404 if not found. */
         return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();        
     }

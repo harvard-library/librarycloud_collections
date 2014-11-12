@@ -1,8 +1,9 @@
 package edu.harvard.lib.librarycloud.collections.dao;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import javax.persistence.*;
 
 import org.apache.log4j.Logger;
@@ -51,6 +52,29 @@ public class CollectionDAO  {
 								.getResultList();
 		return result;
 	}	
+
+	public Item getItem(String external_id) {
+		List<Item> items = getItems(Collections.singletonList(external_id));
+		if ((items != null) && (items.size() == 1)) {
+			return items.get(0);
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * Retrieve items and associated collections for all items within a collection
+	 * @param  collection 		Collection with items to retrieve
+	 * @return              	List of matching Item objects with populated Collections
+	 */
+	public List<Item> getItems(Collection collection) {
+		String query = "SELECT i FROM Item i LEFT JOIN FETCH i.collections INNER JOIN i.collections c WHERE c.id = :collectionId";
+		List<Item> result = em.createQuery(query, Item.class)
+								.setParameter("collectionId", collection.getId())
+								.getResultList();
+		return result;
+	}	
+
 
 	/**
 	 * Get an individual collection by ID
