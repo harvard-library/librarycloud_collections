@@ -12,6 +12,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.*;
 
+
 import org.apache.log4j.Logger;
 
 import org.glassfish.jersey.server.JSONP;
@@ -27,6 +28,9 @@ public class CollectionsAPI {
 
     @Context 
     UriInfo uriInfo;
+
+    @Context
+    SecurityContext securityContext;
 
     @Context
     HttpServletResponse response;
@@ -50,6 +54,7 @@ public class CollectionsAPI {
         } else {
             collections = collectionDao.getCollections();            
         }
+
         return collections;
     }
 
@@ -136,6 +141,14 @@ public class CollectionsAPI {
     @DELETE @Path("collections/{id}")
     public Response deleteCollection(@PathParam("id") Integer id) {
         Collection c = collectionDao.getCollection(id);
+
+        User user = (User) securityContext.getUserPrincipal();
+        if(!(user != null && (user.getId() == c.getUser().getId()
+            || securityContext.isUserInRole("admin"))))
+        {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+
         List<Item> items = collectionDao.getItems(c);
         boolean result = collectionDao.deleteCollection(id);
         if (result) {
