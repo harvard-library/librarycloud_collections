@@ -34,6 +34,9 @@ public class CollectionsAPI {
     @Autowired
     private CollectionDAO collectionDao;
 
+    @Autowired
+    private CollectionsWorkflow collectionsWorkflow;
+
     /**
      * Get all collections, or collections matching a query
      */
@@ -84,16 +87,13 @@ public class CollectionsAPI {
         return ci;
     }
 
-
     /**
      * Get items in a collection
      */
     @GET @Path("collections/{id}/items")
-    @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
-    public List<Item> getItemsByCollection(@PathParam("id") Integer id) {
-
-        List<Item> results = collectionDao.getItemsByCollection(id);
-        return results;
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getItemsByCollection(@PathParam("id") String id) {
+        return "Request for items from collection with id " + id;
     }
 
     /**
@@ -116,13 +116,18 @@ public class CollectionsAPI {
     public Response updateCollection(@PathParam("id") String id, Collection collection) {
     	
     	Collection result = collectionDao.updateCollection(Integer.parseInt(id),collection);
-    	if(result != null){
-            return Response.status(Status.NO_CONTENT).build(); 
-
+    	if (result != null) {
+            try {
+                collectionsWorkflow.notify(result);
+            } catch (Exception e) {
+                log.error(e);
+                e.printStackTrace();
+            }
+            UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
+            URI uri = uriBuilder.path(id.toString()).build();
+            return Response.created(uri).build();        
         }
-
         return Response.status(Status.NOT_FOUND).build();
-        
     }
 
     /**
@@ -130,7 +135,19 @@ public class CollectionsAPI {
      */
     @DELETE @Path("collections/{id}")
     public Response deleteCollection(@PathParam("id") Integer id) {
+        Collection c = collectionDao.getCollection(id);
+        List<Item> items = collectionDao.getItems(c);
         boolean result = collectionDao.deleteCollection(id);
+        if (result) {
+            try {
+                for (Item item : items) {
+                    collectionsWorkflow.notify(item.getItemId());
+                }
+            } catch (Exception e) {
+                log.error(e);
+                e.printStackTrace();
+            }
+        }
         /* Return 204 if successful, 404 if not found. */
         return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();        
     }
@@ -145,7 +162,14 @@ public class CollectionsAPI {
             boolean result = collectionDao.addToCollection(id, item);
             if (!result) {
                 return Response.status(Status.NOT_FOUND).build();
-            }    
+            } else {
+                try {
+                    collectionsWorkflow.notify(item.getItemId());
+                } catch (Exception e) {
+                    log.error(e);
+                    e.printStackTrace();
+                }
+            }   
         }
         return Response.status(Status.NO_CONTENT).build();
     }
@@ -157,6 +181,15 @@ public class CollectionsAPI {
     public Response removeItem(@PathParam("id") Integer id, 
                                @PathParam("itemid") String external_item_id) {
         boolean result = collectionDao.removeFromCollection(id, external_item_id);
+        if (result) {
+            try {
+                collectionsWorkflow.notify(external_item_id);    
+            } catch (Exception e) {
+                log.error(e);
+                e.printStackTrace();
+            }
+        }
+        
         /* Return 204 if successful, 404 if not found. */
         return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();        
     }

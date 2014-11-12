@@ -27,5 +27,6 @@
    </bean>     
 
  	<bean id="collectionDao" class="edu.harvard.lib.librarycloud.collections.dao.CollectionDAO"/>
+ 	<bean id="CollectionsWorkflow" class="edu.harvard.lib.librarycloud.collections.CollectionsWorkflow"/>
 
 </beans>
