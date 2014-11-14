@@ -67,7 +67,7 @@ public class AuthorizationFilter implements ContainerRequestFilter {
          @Override
          public boolean isUserInRole(String role) {
             User user = (User)this.getUserPrincipal();
-            return user != null && user.getRole() == role;
+			return user != null && user.getRole().equals(role);
          }
 
          @Override
@@ -78,6 +78,13 @@ public class AuthorizationFilter implements ContainerRequestFilter {
          @Override
          public String getAuthenticationScheme() {
              return "custom";
+         }
+
+         public boolean canUserModifyData(Collection c)
+         {
+         	User user = (User)this.getUserPrincipal();
+         	return user != null && (user.getId() == c.getUser().getId()
+            || this.isUserInRole("admin"));
          }
      });
 

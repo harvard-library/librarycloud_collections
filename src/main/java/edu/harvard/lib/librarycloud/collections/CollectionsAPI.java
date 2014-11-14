@@ -96,17 +96,35 @@ public class CollectionsAPI {
      * Get items in a collection
      */
     @GET @Path("collections/{id}/items")
-    @Produces(MediaType.TEXT_PLAIN)
-    public String getItemsByCollection(@PathParam("id") String id) {
-        return "Request for items from collection with id " + id;
-    }
+    @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
+    public List<Item> getItemsByCollection(@PathParam("id") Integer id) {
 
+        List<Item> results = collectionDao.getItemsByCollection(id);
+        return results;
+    }
     /**
      * Create a collection
      */
     @POST @Path("collections")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response createCollection(Collection collection) {
+
+//how to handle security on post. Kind of a chicken/egg thing.
+/*        if(!this.checkUserAuthorization(collection))
+        {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+*/
+        User user = (User)securityContext.getUserPrincipal();
+
+        if(user == null) //user not found.
+        {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }      
+        
+        collection.setUser(user);
+
+
         Integer id = collectionDao.createCollection(collection);
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
         URI uri = uriBuilder.path(id.toString()).build();
@@ -118,9 +136,12 @@ public class CollectionsAPI {
      */
     @PUT @Path("collections/{id}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response updateCollection(@PathParam("id") String id, Collection collection) {
-    	
-    	Collection result = collectionDao.updateCollection(Integer.parseInt(id),collection);
+    public Response updateCollection(@PathParam("id") Integer id, Collection collection) {
+        if(!this.checkUserAuthorization(id))
+        {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+    	Collection result = collectionDao.updateCollection(id,collection);
     	if (result != null) {
             try {
                 collectionsWorkflow.notify(result);
@@ -128,10 +149,9 @@ public class CollectionsAPI {
                 log.error(e);
                 e.printStackTrace();
             }
-            UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
-            URI uri = uriBuilder.path(id.toString()).build();
-            return Response.created(uri).build();        
+            return Response.status(Status.NO_CONTENT).build(); 
         }
+    
         return Response.status(Status.NOT_FOUND).build();
     }
 
@@ -142,9 +162,8 @@ public class CollectionsAPI {
     public Response deleteCollection(@PathParam("id") Integer id) {
         Collection c = collectionDao.getCollection(id);
 
-        User user = (User) securityContext.getUserPrincipal();
-        if(!(user != null && (user.getId() == c.getUser().getId()
-            || securityContext.isUserInRole("admin"))))
+        log.debug("delete collection");
+        if(!this.checkUserAuthorization(c))
         {
             return Response.status(Status.UNAUTHORIZED).build();
         }
@@ -171,6 +190,12 @@ public class CollectionsAPI {
     @POST @Path("collections/{id}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response addItems(@PathParam("id") Integer id, List<Item> items) {
+
+        if(!this.checkUserAuthorization(id))
+        {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+
         for (Item item : items) {
             boolean result = collectionDao.addToCollection(id, item);
             if (!result) {
@@ -193,6 +218,12 @@ public class CollectionsAPI {
     @DELETE @Path("collections/{id}/items/{itemid}")
     public Response removeItem(@PathParam("id") Integer id, 
                                @PathParam("itemid") String external_item_id) {
+
+        if(!this.checkUserAuthorization(id))
+        {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+
         boolean result = collectionDao.removeFromCollection(id, external_item_id);
         if (result) {
             try {
@@ -206,5 +237,25 @@ public class CollectionsAPI {
         /* Return 204 if successful, 404 if not found. */
         return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();        
     }
+
+    /**
+     * Confirm a users access for modifying data.
+     */
+
+    private boolean checkUserAuthorization(Integer collectionId)
+    {
+        Collection c = collectionDao.getCollection(collectionId);
+        return checkUserAuthorization(c);
+    }
+
+    private boolean checkUserAuthorization(Collection c)
+    {
+        User user = (User) securityContext.getUserPrincipal();
+
+        return user != null && (user.getId() == c.getUser().getId()
+            || securityContext.isUserInRole("admin"));
+    }
+
+        
 
 }
