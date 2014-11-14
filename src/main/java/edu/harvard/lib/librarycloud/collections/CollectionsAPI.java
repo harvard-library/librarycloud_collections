@@ -109,16 +109,9 @@ public class CollectionsAPI {
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response createCollection(Collection collection) {
 
-//how to handle security on post. Kind of a chicken/egg thing.
-/*        if(!this.checkUserAuthorization(collection))
-        {
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
-*/
         User user = (User)securityContext.getUserPrincipal();
 
-        if(user == null) //user not found.
-        {
+        if (user == null) { //user not found.
             return Response.status(Status.UNAUTHORIZED).build();
         }      
         
@@ -137,8 +130,7 @@ public class CollectionsAPI {
     @PUT @Path("collections/{id}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response updateCollection(@PathParam("id") Integer id, Collection collection) {
-        if(!this.checkUserAuthorization(id))
-        {
+        if (!this.checkUserAuthorization(id)) {
             return Response.status(Status.UNAUTHORIZED).build();
         }
     	Collection result = collectionDao.updateCollection(id,collection);
@@ -162,9 +154,7 @@ public class CollectionsAPI {
     public Response deleteCollection(@PathParam("id") Integer id) {
         Collection c = collectionDao.getCollection(id);
 
-        log.debug("delete collection");
-        if(!this.checkUserAuthorization(c))
-        {
+        if (!this.checkUserAuthorization(c)) {
             return Response.status(Status.UNAUTHORIZED).build();
         }
 
@@ -191,8 +181,7 @@ public class CollectionsAPI {
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response addItems(@PathParam("id") Integer id, List<Item> items) {
 
-        if(!this.checkUserAuthorization(id))
-        {
+        if (!this.checkUserAuthorization(id)) {
             return Response.status(Status.UNAUTHORIZED).build();
         }
 
@@ -219,8 +208,7 @@ public class CollectionsAPI {
     public Response removeItem(@PathParam("id") Integer id, 
                                @PathParam("itemid") String external_item_id) {
 
-        if(!this.checkUserAuthorization(id))
-        {
+        if (!this.checkUserAuthorization(id)) {
             return Response.status(Status.UNAUTHORIZED).build();
         }
 
@@ -242,20 +230,15 @@ public class CollectionsAPI {
      * Confirm a users access for modifying data.
      */
 
-    private boolean checkUserAuthorization(Integer collectionId)
-    {
+    private boolean checkUserAuthorization(Integer collectionId) {
         Collection c = collectionDao.getCollection(collectionId);
         return checkUserAuthorization(c);
     }
 
-    private boolean checkUserAuthorization(Collection c)
-    {
+    private boolean checkUserAuthorization(Collection c) {
         User user = (User) securityContext.getUserPrincipal();
 
         return user != null && (user.getId() == c.getUser().getId()
             || securityContext.isUserInRole("admin"));
     }
-
-        
-
 }

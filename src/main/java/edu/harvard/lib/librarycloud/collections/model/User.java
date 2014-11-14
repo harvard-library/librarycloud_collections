@@ -17,6 +17,7 @@ public class User implements Principal
 
 	private String name;
 
+	@Column(unique=true, nullable=false)
 	private String token;
 
 	private String role;
@@ -26,58 +27,47 @@ public class User implements Principal
 
 	//getters/setters
 
-	public int getId()
-	{
+	public int getId(){
 		return id;
 	}
 
-	public List<Collection> getCollections()
-	{
+	public List<Collection> getCollections(){
 		return collections;
 	}
 
-	public void setCollections(List<Collection> collections)
-	{
+	public void setCollections(List<Collection> collections){
 		this.collections = collections;
 	}
 
-	public String getEmail()
-	{
+	public String getEmail(){
 		return email;
 	}
 
-	public void setEmail(String email)
-	{
+	public void setEmail(String email){
 		this.email = email;
 	}
 
-	public String getName()
-	{
+	public String getName(){
 		return name;
 	}
 
-	public void setString(String name)
-	{
+	public void setName(String name){
 		this.name = name;
 	}
 
-	public String getToken()
-	{
+	public String getToken(){
 		return token;
 	}
 
-	public void setToken(String token)
-	{
+	public void setToken(String token){
 		this.token = token;
 	}
 
-	public String getRole()
-	{
+	public String getRole(){
 		return role;
 	}
 
-	public void setRole(String role)
-	{
+	public void setRole(String role){
 		this.role = role;
 	}
 

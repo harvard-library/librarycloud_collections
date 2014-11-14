@@ -18,7 +18,7 @@ import edu.harvard.lib.librarycloud.collections.model.*;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/* Set CORS headers for all API queries. */
+/* Provide token-based authorization filtering  */
 
 @Provider
 @Priority(Priorities.AUTHORIZATION)
@@ -31,9 +31,10 @@ public class AuthorizationFilter implements ContainerRequestFilter {
     @Autowired
     private CollectionDAO collectionDao;
 
+    private static final String APIKEYHEADER = "X-LibraryCloud-API-Key";
 
-	public AuthorizationFilter()
-	{
+
+	public AuthorizationFilter(){
 		log.debug("Starting AuthorizationFilter");
 	}
 
@@ -51,16 +52,15 @@ public class AuthorizationFilter implements ContainerRequestFilter {
          @Override
          public Principal getUserPrincipal() {
              MultivaluedMap<String, String> headers = finalRequestContext.getHeaders();
-             if(!(headers.containsKey("X-LibraryCloud-API-Key") 
-             	&& (headers.getFirst("X-LibraryCloud-API-Key").length() > 0)))
-             {
-             	log.debug("api key (null): " + headers.getFirst("X-LibraryCloud-API-Key"));
+             if(!(headers.containsKey(APIKEYHEADER) 
+             	&& (headers.getFirst(APIKEYHEADER).length() > 0))){
+             	log.debug("api key (null): " + headers.getFirst(APIKEYHEADER));
              	return null;
              }
 
-           	log.debug("api key: " + headers.getFirst("X-LibraryCloud-API-Key"));
+           	log.debug("api key: " + headers.getFirst(APIKEYHEADER));
 
-             User user = collectionDao.getUserForAPIToken(headers.getFirst("X-LibraryCloud-API-Key"));
+             User user = collectionDao.getUserForAPIToken(headers.getFirst(APIKEYHEADER));
              return user;
          }
 
@@ -80,8 +80,7 @@ public class AuthorizationFilter implements ContainerRequestFilter {
              return "custom";
          }
 
-         public boolean canUserModifyData(Collection c)
-         {
+         public boolean canUserModifyData(Collection c){
          	User user = (User)this.getUserPrincipal();
          	return user != null && (user.getId() == c.getUser().getId()
             || this.isUserInRole("admin"));
