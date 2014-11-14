@@ -41,6 +41,25 @@ public class CollectionDAO  {
 	}
 
 	/**
+	 * Get User from API token
+	 * @param  token Token of the user to look for
+	 * @return                  User for that token.
+	 */
+
+	public User getUserForAPIToken(String token)
+	{
+		String query = "SELECT u FROM User u " +
+					   "WHERE u.token = :token";
+	try{
+		User result = em.createQuery(query, User.class)
+									 .setParameter("token", token).setMaxResults(1)
+							 .getSingleResult();
+		return result;
+	} catch (NoResultException e) { return null;}
+	}
+
+
+	/**
 	 * Retrieve items and associated collections based on list of IDs
 	 * @param  external_id_list List of IDs to lookup. These are IDs from the source system, not internal IDs
 	 * @return              	List of matching Item objects with populated Collections
@@ -75,6 +94,20 @@ public class CollectionDAO  {
 		return result;
 	}	
 
+
+	/**
+	 * Retrieve items associated with a collection based on the collectionId.
+	 * @param  id Id of the collection.
+	 * @return List of matching Item objects.
+	 */
+	public List<Item> getItemsByCollection(Integer id)
+	{
+		String query = "select i from Collection c JOIN c.items i WHERE c.id = :collectionId";
+		List<Item> result = em.createQuery(query, Item.class)
+								.setParameter("collectionId",id)
+								.getResultList();
+		return result;
+	}
 
 	/**
 	 * Get an individual collection by ID

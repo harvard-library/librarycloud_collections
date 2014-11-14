@@ -60,6 +60,9 @@ public class Collection  {
     @JoinTable(name="collection_item")
     private List<Item> items;
 
+    @ManyToOne
+    private User user;
+
 	@Column(nullable = false)
 	private String title;
 
@@ -88,6 +91,16 @@ public class Collection  {
 
 	public void setItems(List<Item> items) {
 		this.items = items;
+	}
+
+	public User getUser()
+	{
+		return user;
+	}
+
+	public void setUser(User user)
+	{
+		this.user = user;
 	}
 
 	public void addItem(Item item) {
