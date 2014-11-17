@@ -49,13 +49,31 @@ public class CollectionsAPI {
     @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
     public List<Collection> getCollections(@QueryParam("contains") String contains,@QueryParam("q") String q, 
             @QueryParam("title") String title, @QueryParam("abstract") String a,
-            @QueryParam("limit") Integer limit
+            @QueryParam("limit") Integer limit, @QueryParam("sort") String sort,
+            @QueryParam("sort.asc") String sortAsc, @QueryParam("sort.desc") String sortDesc
             ) {
         List<Collection> collections;
         if (contains != null) {
             collections = collectionDao.getCollectionsForItem(contains);
         } else {
-            collections = collectionDao.getCollections(q, title, a, false, limit);            
+            //handle sorting parameters
+            String sortField = "";
+            boolean shouldSortAsc = true;
+            if(sort != null && sort != ""){
+                sortField = sort;
+                shouldSortAsc = true;
+            } else if(sortAsc != null && sortAsc != ""){
+                sortField = sortAsc;
+                shouldSortAsc = true;
+            } else if(sortDesc != null && sortDesc != ""){
+                sortField = sortDesc;
+                shouldSortAsc = false;
+            }
+            //This is a kludge to handle the frontend/backend column naming.
+            //If we find that this happens more often, a translation dictionary
+            //should probably be implemented.
+            sortField = sortField.replace("abstract", "summary"); 
+            collections = collectionDao.getCollections(q, title, a, false, limit, sortField, shouldSortAsc);
         }
 
         return collections;

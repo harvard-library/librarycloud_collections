@@ -23,7 +23,10 @@ public class CollectionDAO  {
 
 	public CollectionDAO() {}
 
-	public List<Collection> getCollections(String q, String title, String a, boolean exactMatch, Integer limit) {
+	public List<Collection> getCollections(String q, String title, 
+			String a, boolean exactMatch, Integer limit,
+			String sortField, boolean shouldSortAsc
+			) {
 
 		CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
 		CriteriaQuery<Collection> criteriaQuery = criteriaBuilder.createQuery(Collection.class);
@@ -59,6 +62,14 @@ public class CollectionDAO  {
 			predicateORList.add(criteriaBuilder.like(collectionRoot.get(type.getDeclaredSingularAttribute("summary", String.class)), q));
 		} 
 
+		if(sortField != ""){
+			if(shouldSortAsc == false){
+				criteriaQuery.orderBy(criteriaBuilder.desc(collectionRoot.get(type.getDeclaredSingularAttribute(sortField, String.class))));
+			} else {
+				criteriaQuery.orderBy(criteriaBuilder.asc(collectionRoot.get(type.getDeclaredSingularAttribute(sortField, String.class))));
+			}
+		}
+
 
 		Predicate[] predicateANDArray = new Predicate[predicateANDList.size()];
 		predicateANDArray = predicateANDList.toArray(predicateANDArray);
@@ -78,6 +89,7 @@ public class CollectionDAO  {
 		{
 			query.setMaxResults(limit);
 		}
+
 
 		result = query.getResultList();
 		return result;
