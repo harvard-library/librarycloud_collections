@@ -40,12 +40,12 @@ public class CollectionDAO  {
 		//String query = "SELECT c FROM Collection c";
 		List<Collection> result;
 		log.debug("q = " + q);
-		if (!exactMatch)
-		{
-			title = "%" + (title == null? "" : title) + "%";
-			a = "%" + (a == null? "" : a) + "%";
-			q = "%" + (q == null? "" : q) + "%";
-		}
+//		if (!exactMatch) //functionality not currently supported.
+//		{
+			title = "%" + (title == null? "" : title.replace('*','%')) + "%";
+			a = "%" + (a == null? "" : a.replace('*','%')) + "%";
+			q = "%" + (q == null? "" : q.replace('*','%')) + "%";
+//		}
 
 		if (title != null && title.length() > (exactMatch ? 0: 2)){
 			log.debug("title = " + title);
@@ -78,7 +78,7 @@ public class CollectionDAO  {
 		{
 			query.setMaxResults(limit);
 		}
-		
+
 		result = query.getResultList();
 		return result;
 	}
