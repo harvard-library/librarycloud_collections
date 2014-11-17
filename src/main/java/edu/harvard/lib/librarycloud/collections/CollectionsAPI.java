@@ -47,12 +47,15 @@ public class CollectionsAPI {
     @GET @Path("collections") 
     @JSONP(queryParam = "callback")
     @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
-    public List<Collection> getCollections(@QueryParam("contains") String contains,@QueryParam("q") String q, @QueryParam("title") String title, @QueryParam("abstract") String a) {
+    public List<Collection> getCollections(@QueryParam("contains") String contains,@QueryParam("q") String q, 
+            @QueryParam("title") String title, @QueryParam("abstract") String a,
+            @QueryParam("limit") Integer limit
+            ) {
         List<Collection> collections;
         if (contains != null) {
             collections = collectionDao.getCollectionsForItem(contains);
         } else {
-            collections = collectionDao.getCollections(q, title, a, false);            
+            collections = collectionDao.getCollections(q, title, a, false, limit);            
         }
 
         return collections;

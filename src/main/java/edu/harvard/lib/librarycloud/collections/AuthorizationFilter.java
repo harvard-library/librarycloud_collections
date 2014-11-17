@@ -52,7 +52,7 @@ public class AuthorizationFilter implements ContainerRequestFilter {
          @Override
          public Principal getUserPrincipal() {
              MultivaluedMap<String, String> headers = finalRequestContext.getHeaders();
-             if(!(headers.containsKey(APIKEYHEADER) 
+             if (!(headers.containsKey(APIKEYHEADER) 
              	&& (headers.getFirst(APIKEYHEADER).length() > 0))){
              	log.debug("api key (null): " + headers.getFirst(APIKEYHEADER));
              	return null;

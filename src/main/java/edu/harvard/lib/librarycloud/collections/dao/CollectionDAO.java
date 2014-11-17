@@ -23,7 +23,7 @@ public class CollectionDAO  {
 
 	public CollectionDAO() {}
 
-	public List<Collection> getCollections(String q, String title, String a, boolean exactMatch) {
+	public List<Collection> getCollections(String q, String title, String a, boolean exactMatch, Integer limit) {
 
 		CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
 		CriteriaQuery<Collection> criteriaQuery = criteriaBuilder.createQuery(Collection.class);
@@ -59,6 +59,7 @@ public class CollectionDAO  {
 			predicateORList.add(criteriaBuilder.like(collectionRoot.get(type.getDeclaredSingularAttribute("summary", String.class)), q));
 		} 
 
+
 		Predicate[] predicateANDArray = new Predicate[predicateANDList.size()];
 		predicateANDArray = predicateANDList.toArray(predicateANDArray);
 		Predicate[] predicateORArray = new Predicate[predicateORList.size()];
@@ -72,6 +73,12 @@ public class CollectionDAO  {
 		}
 
 		TypedQuery query = em.createQuery(criteriaQuery);
+
+		if(limit != null && limit != 0)
+		{
+			query.setMaxResults(limit);
+		}
+		
 		result = query.getResultList();
 		return result;
 	}
