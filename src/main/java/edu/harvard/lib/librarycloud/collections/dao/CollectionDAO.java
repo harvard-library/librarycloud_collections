@@ -25,7 +25,7 @@ public class CollectionDAO  {
 
 	public List<Collection> getCollections(String q, String title, 
 			String a, boolean exactMatch, Integer limit,
-			String sortField, boolean shouldSortAsc
+			String sortField, boolean shouldSortAsc, Integer start
 			) {
 
 		CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
@@ -40,10 +40,8 @@ public class CollectionDAO  {
 
 
 
-		//String query = "SELECT c FROM Collection c";
 		List<Collection> result;
-		log.debug("q = " + q);
-//		if (!exactMatch) //functionality not currently supported.
+//		if (!exactMatch) //Exact functionality not currently supported.
 //		{
 			title = "%" + (title == null? "" : title.replace('*','%')) + "%";
 			a = "%" + (a == null? "" : a.replace('*','%')) + "%";
@@ -85,11 +83,8 @@ public class CollectionDAO  {
 
 		TypedQuery query = em.createQuery(criteriaQuery);
 
-		if(limit != null && limit != 0)
-		{
-			query.setMaxResults(limit);
-		}
-
+		query.setMaxResults(limit);
+		query.setFirstResult(start);
 
 		result = query.getResultList();
 		return result;
