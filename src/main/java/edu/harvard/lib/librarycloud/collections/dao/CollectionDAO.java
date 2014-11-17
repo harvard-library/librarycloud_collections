@@ -2,9 +2,12 @@ package edu.harvard.lib.librarycloud.collections.dao;
 
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Collections;
 import java.util.List;
 import javax.persistence.*;
+import javax.persistence.criteria.*;
+import javax.persistence.metamodel.*;
 
 import org.apache.log4j.Logger;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -20,9 +23,56 @@ public class CollectionDAO  {
 
 	public CollectionDAO() {}
 
-	public List<Collection> getCollections() {
-		String query = "SELECT c FROM Collection c";
-		List<Collection> result = em.createQuery(query, Collection.class).getResultList();
+	public List<Collection> getCollections(String q, String title, String a, boolean exactMatch) {
+
+		CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+		CriteriaQuery<Collection> criteriaQuery = criteriaBuilder.createQuery(Collection.class);
+
+		List<Predicate> predicateANDList = new LinkedList<Predicate>();
+		List<Predicate> predicateORList = new LinkedList<Predicate>();
+		EntityType<Collection> type = em.getMetamodel().entity(Collection.class);
+
+		Root<Collection> collectionRoot = criteriaQuery.from(Collection.class);
+		criteriaQuery.select(collectionRoot);
+
+
+
+		//String query = "SELECT c FROM Collection c";
+		List<Collection> result;
+		log.debug("q = " + q);
+		if (!exactMatch)
+		{
+			title = "%" + (title == null? "" : title) + "%";
+			a = "%" + (a == null? "" : a) + "%";
+			q = "%" + (q == null? "" : q) + "%";
+		}
+
+		if (title != null && title.length() > (exactMatch ? 0: 2)){
+			log.debug("title = " + title);
+			predicateANDList.add(criteriaBuilder.like(collectionRoot.get(type.getDeclaredSingularAttribute("title", String.class)), title));
+
+		} else if (a != null && a.length() > (exactMatch ? 0: 2)){
+			predicateANDList.add(criteriaBuilder.like(collectionRoot.get(type.getDeclaredSingularAttribute("summary", String.class)), a));
+
+		} else if (q != null && q.length() > (exactMatch ? 0: 2)){
+			predicateORList.add(criteriaBuilder.like(collectionRoot.get(type.getDeclaredSingularAttribute("title", String.class)), q));
+			predicateORList.add(criteriaBuilder.like(collectionRoot.get(type.getDeclaredSingularAttribute("summary", String.class)), q));
+		} 
+
+		Predicate[] predicateANDArray = new Predicate[predicateANDList.size()];
+		predicateANDArray = predicateANDList.toArray(predicateANDArray);
+		Predicate[] predicateORArray = new Predicate[predicateORList.size()];
+		predicateORArray = predicateORList.toArray(predicateORArray);
+
+		if(predicateANDList.size() > 0){
+			criteriaQuery.where(criteriaBuilder.and(predicateANDArray));
+		}
+		if(predicateORList.size() > 0){
+			criteriaQuery.where(criteriaBuilder.or(predicateORArray));
+		}
+
+		TypedQuery query = em.createQuery(criteriaQuery);
+		result = query.getResultList();
 		return result;
 	}
 
