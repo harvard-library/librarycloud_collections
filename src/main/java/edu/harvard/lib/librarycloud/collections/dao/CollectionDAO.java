@@ -24,7 +24,7 @@ public class CollectionDAO  {
 	public CollectionDAO() {}
 
 	public List<Collection> getCollections(String q, String title, 
-			String a, boolean exactMatch, Integer limit,
+			String summary, boolean exactMatch, Integer limit,
 			String sortField, boolean shouldSortAsc, Integer start
 			) {
 
@@ -44,7 +44,7 @@ public class CollectionDAO  {
 //		if (!exactMatch) //Exact functionality not currently supported.
 //		{
 			title = "%" + (title == null? "" : title.replace('*','%')) + "%";
-			a = "%" + (a == null? "" : a.replace('*','%')) + "%";
+			summary = "%" + (summary == null? "" : summary.replace('*','%')) + "%";
 			q = "%" + (q == null? "" : q.replace('*','%')) + "%";
 //		}
 
@@ -52,8 +52,8 @@ public class CollectionDAO  {
 			log.debug("title = " + title);
 			predicateANDList.add(criteriaBuilder.like(collectionRoot.get(type.getDeclaredSingularAttribute("title", String.class)), title));
 
-		} else if (a != null && a.length() > (exactMatch ? 0: 2)){
-			predicateANDList.add(criteriaBuilder.like(collectionRoot.get(type.getDeclaredSingularAttribute("summary", String.class)), a));
+		} else if (summary != null && summary.length() > (exactMatch ? 0: 2)){
+			predicateANDList.add(criteriaBuilder.like(collectionRoot.get(type.getDeclaredSingularAttribute("summary", String.class)), summary));
 
 		} else if (q != null && q.length() > (exactMatch ? 0: 2)){
 			predicateORList.add(criteriaBuilder.like(collectionRoot.get(type.getDeclaredSingularAttribute("title", String.class)), q));
