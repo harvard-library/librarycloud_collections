@@ -40,6 +40,8 @@ import javax.servlet.ServletContext;
 public class Config {
 	
 	public String SQS_ENVIRONMENT;
+	public String AWS_KEY;
+	public String AWS_SECRET;
 	private static Config conf;	
 	public static String propFile = "librarycloud.collections.env.properties";
 	
@@ -53,6 +55,8 @@ public class Config {
 		} 
 		
 		SQS_ENVIRONMENT = props.getProperty("librarycloud.sqs.environment");
+		AWS_KEY = props.getProperty("aws.access.key");
+		AWS_SECRET = props.getProperty("aws.secret.key");
 	}
 	
 	public static synchronized Config getInstance() {

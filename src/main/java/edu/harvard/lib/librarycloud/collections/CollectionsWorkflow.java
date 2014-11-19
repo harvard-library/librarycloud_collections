@@ -10,6 +10,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.sqs.*;
 import com.amazonaws.services.sqs.model.*;
 
@@ -40,11 +41,12 @@ public class CollectionsWorkflow {
 	 */
 	public void notify(String external_item_id) throws Exception {
 
+		Config config = Config.getInstance();
 		log.error(external_item_id);
 		Item item = collectionDao.getItem(external_item_id);
 
 		/* If no item returned perhaps because the item belonged only 
-		   to a single collection which is now delete, setup an empty 
+		   to a single collection which is now deleted, setup an empty 
 		   item with no collections as the update */
 		if (item == null) {
 			item = new Item();
@@ -53,8 +55,8 @@ public class CollectionsWorkflow {
 		String s = StringEscapeUtils.escapeXml(marshalItem(item));
 		String message = String.format(UPDATE_TEMPLATE,s);
 
-        AmazonSQSAsyncClient sqs = new AmazonSQSAsyncClient();
-        CreateQueueResult createQueueResult = sqs.createQueue(Config.getInstance().SQS_ENVIRONMENT + "-update-public");
+        AmazonSQSAsyncClient sqs = new AmazonSQSAsyncClient(new BasicAWSCredentials(config.AWS_KEY, config.AWS_SECRET));
+        CreateQueueResult createQueueResult = sqs.createQueue(config.SQS_ENVIRONMENT + "-update-public");
         SendMessageResult sendMessageResult = sqs.sendMessage(createQueueResult.getQueueUrl(), message);
         log.error(message);
 	}
