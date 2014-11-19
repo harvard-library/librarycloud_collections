@@ -82,7 +82,11 @@ public class CollectionsAPI {
             //If we find that this happens more often, a translation dictionary
             //should probably be implemented.
             sortField = sortField.replace("abstract", "summary"); 
-            collections = collectionDao.getCollections(q, title, summary, false, limit, sortField, shouldSortAsc, start);
+            try{
+                collections = collectionDao.getCollections(q, title, summary, false, limit, sortField, shouldSortAsc, start);
+            } catch (Exception e){
+                throw new BadRequestException();
+            }
         }
 
         return collections;
