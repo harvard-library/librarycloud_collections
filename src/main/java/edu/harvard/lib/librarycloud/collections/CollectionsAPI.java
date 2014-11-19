@@ -48,7 +48,7 @@ public class CollectionsAPI {
     @JSONP(queryParam = "callback")
     @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
     public List<Collection> getCollections(@QueryParam("contains") String contains,@QueryParam("q") String q, 
-            @QueryParam("title") String title, @QueryParam("abstract") String a,
+            @QueryParam("title") String title, @QueryParam("abstract") String summary,
             @QueryParam("limit") Integer limit, @QueryParam("sort") String sort,
             @QueryParam("sort.asc") String sortAsc, @QueryParam("sort.desc") String sortDesc,
             @QueryParam("start") Integer start
@@ -71,7 +71,7 @@ public class CollectionsAPI {
                 shouldSortAsc = false;
             }
 
-            if (!(limit != null && limit != 0)){
+            if (limit == null || limit <= 0){
                 limit = 10; //default to 10
             }
 
@@ -82,7 +82,7 @@ public class CollectionsAPI {
             //If we find that this happens more often, a translation dictionary
             //should probably be implemented.
             sortField = sortField.replace("abstract", "summary"); 
-            collections = collectionDao.getCollections(q, title, a, false, limit, sortField, shouldSortAsc, start);
+            collections = collectionDao.getCollections(q, title, summary, false, limit, sortField, shouldSortAsc, start);
         }
 
         return collections;
