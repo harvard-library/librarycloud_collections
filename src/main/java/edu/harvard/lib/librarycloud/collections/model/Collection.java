@@ -4,6 +4,7 @@ import java.util.List;
 import javax.persistence.*;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import org.eclipse.persistence.oxm.annotations.XmlInverseReference;
 
@@ -93,6 +94,7 @@ public class Collection  {
 		this.items = items;
 	}
 
+	@XmlTransient
 	public User getUser()
 	{
 		return user;
