@@ -47,12 +47,42 @@ public class CollectionsAPI {
     @GET @Path("collections") 
     @JSONP(queryParam = "callback")
     @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
-    public List<Collection> getCollections(@QueryParam("contains") String contains) {
+    public List<Collection> getCollections(@QueryParam("contains") String contains,@QueryParam("q") String q, 
+            @QueryParam("title") String title, @QueryParam("abstract") String a,
+            @QueryParam("limit") Integer limit, @QueryParam("sort") String sort,
+            @QueryParam("sort.asc") String sortAsc, @QueryParam("sort.desc") String sortDesc,
+            @QueryParam("start") Integer start
+            ) {
         List<Collection> collections;
         if (contains != null) {
             collections = collectionDao.getCollectionsForItem(contains);
         } else {
-            collections = collectionDao.getCollections();            
+            //handle sorting parameters
+            String sortField = "";
+            boolean shouldSortAsc = true;
+            if(sort != null && sort != ""){
+                sortField = sort;
+                shouldSortAsc = true;
+            } else if(sortAsc != null && sortAsc != ""){
+                sortField = sortAsc;
+                shouldSortAsc = true;
+            } else if(sortDesc != null && sortDesc != ""){
+                sortField = sortDesc;
+                shouldSortAsc = false;
+            }
+
+            if (!(limit != null && limit != 0)){
+                limit = 10; //default to 10
+            }
+
+            if ((start == null)){
+                start = 0; //default to beginning
+            }
+            //This is a kludge to handle the frontend/backend column naming.
+            //If we find that this happens more often, a translation dictionary
+            //should probably be implemented.
+            sortField = sortField.replace("abstract", "summary"); 
+            collections = collectionDao.getCollections(q, title, a, false, limit, sortField, shouldSortAsc, start);
         }
 
         return collections;
