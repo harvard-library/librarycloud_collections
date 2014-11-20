@@ -188,6 +188,9 @@ public class CollectionsAPI {
     public Response deleteCollection(@PathParam("id") Integer id) {
         Collection c = collectionDao.getCollection(id);
 
+        if (c == null) {
+            return Response.status(Status.NOT_FOUND).build();
+        }
         if (!this.checkUserAuthorization(c)) {
             return Response.status(Status.UNAUTHORIZED).build();
         }
@@ -266,10 +269,14 @@ public class CollectionsAPI {
 
     private boolean checkUserAuthorization(Integer collectionId) {
         Collection c = collectionDao.getCollection(collectionId);
-        return checkUserAuthorization(c);
+        return (c == null ? true : checkUserAuthorization(c));
     }
 
     private boolean checkUserAuthorization(Collection c) {
+        if (c == null) {
+            return true;
+        }
+
         User user = (User) securityContext.getUserPrincipal();
 
         return user != null && (user.getId() == c.getUser().getId()
