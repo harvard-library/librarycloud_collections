@@ -52,7 +52,10 @@ Setup Maven to use this authentication information. Edit ```{MAVEN_PATH}/conf/se
         <password>PASSWORD_HERE</password>
     </server>
 
+Update ```src/main/resources/META-INF/persistence.xml``` to have the correct database address, username, and password
+
 Build and deploy
 
     mvn clean tomcat7:deploy
+
 
