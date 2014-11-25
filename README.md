@@ -17,15 +17,42 @@ The LibraryCloud Collections API provides access to metadata about groups of ite
 
 ### Download the code
 
-    git clone git@github.com:harvard-library/librarycloud_collections.git
+    git clone https://github.com/harvard-library/librarycloud_collections.git
 
 ### Update environment specific configuration
 
-    cp src/main/resources/librarycloud.collections.env.properties src/main/resources/librarycloud.collections.env
+    cp src/main/resources/librarycloud.collections.env.properties.example src/main/resources/librarycloud.collections.env.properties
 
 Upate  ```librarycloud.collections.env``` with the AWS keys and SQS environment name to use. (The SQS environment sets the prefix that's added to all LibraryCloud queues)
 
 ### Build the application with Maven
+
+Install Maven. If on RHEL:
+
+    sudo yum install wget
+    sudo wget http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo
+    sudo sed -i s/\$releasever/6/g /etc/yum.repos.d/epel-apache-maven.repo
+    sudo yum install apache-maven
+
+Setup Tomcat users for deployment. Edit ```{TOMCAT7_PATH}/conf/tomcat-users.xml``` and add
+
+    <role rolename="manager-gui"/>
+    <role rolename="manager-script"/>
+    <user username="admin" password="PASSWORD_HERE" roles="manager-gui,manager-script" />
+
+Restart Tomcat
+
+    sudo service tomcat restart
+
+Setup Maven to use this authentication information. Edit ```{MAVEN_PATH}/conf/settings.xml```
+
+    <server>
+        <id>TomcatServer</id>
+        <username>admin</username>
+        <password>PASSWORD_HERE</password>
+    </server>
+
+Build and deploy
 
     mvn clean tomcat7:deploy
 
