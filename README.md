@@ -15,11 +15,17 @@ The LibraryCloud Collections API provides access to metadata about groups of ite
 
 ## Build and Deploy
 
-Download the code
+### Download the code
 
     git clone git@github.com:harvard-library/librarycloud_collections.git
 
-Build the application with Maven
+### Update environment specific configuration
+
+    cp src/main/resources/librarycloud.collections.env.properties src/main/resources/librarycloud.collections.env
+
+Upate  ```librarycloud.collections.env``` with the AWS keys and SQS environment name to use. (The SQS environment sets the prefix that's added to all LibraryCloud queues)
+
+### Build the application with Maven
 
     mvn clean tomcat7:deploy
 
