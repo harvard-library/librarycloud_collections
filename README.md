@@ -13,6 +13,13 @@ The LibraryCloud Collections API provides access to metadata about groups of ite
 * Tomcat
 * Maven
 
+### Maven installation (RHEL)
+
+    sudo yum install wget
+    sudo wget http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo
+    sudo sed -i s/\$releasever/6/g /etc/yum.repos.d/epel-apache-maven.repo
+    sudo yum install apache-maven
+
 ## Build and Deploy
 
 ### Download the code
@@ -25,14 +32,7 @@ The LibraryCloud Collections API provides access to metadata about groups of ite
 
 Upate  ```librarycloud.collections.env``` with the AWS keys and SQS environment name to use. (The SQS environment sets the prefix that's added to all LibraryCloud queues)
 
-### Build the application with Maven
-
-Install Maven. If on RHEL:
-
-    sudo yum install wget
-    sudo wget http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo
-    sudo sed -i s/\$releasever/6/g /etc/yum.repos.d/epel-apache-maven.repo
-    sudo yum install apache-maven
+### Build and deploy the application with Maven
 
 Setup Tomcat users for deployment. Edit ```{TOMCAT7_PATH}/conf/tomcat-users.xml``` and add
 
@@ -54,8 +54,13 @@ Setup Maven to use this authentication information. Edit ```{MAVEN_PATH}/conf/se
 
 Update ```src/main/resources/META-INF/persistence.xml``` to have the correct database address, username, and password
 
-Build and deploy
+Build and deploy the application
 
     mvn clean tomcat7:deploy
 
+The collections API will now be listening at http://SERVER:8080/v2/collections
+
+### Setup authorized users
+
+Install MySQL client. 
 
