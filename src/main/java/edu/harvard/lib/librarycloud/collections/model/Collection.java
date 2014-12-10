@@ -146,10 +146,10 @@ public class Collection  {
 		this.summary = summary;
 	}
 
-	@XmlElement(namespace="http://purl.org/dc/terms", name="extent")
-	public int getExtent() {
-		return this.extent;
-	}
+	// @XmlElement(namespace="http://purl.org/dc/terms", name="extent")
+	// public int getExtent() {
+	// 	return this.extent;
+	// }
 
 	@XmlElement(namespace="http://purl.org/dc/elements/1.1", name="language")
 	public String getLanguage() {
