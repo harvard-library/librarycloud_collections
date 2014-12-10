@@ -67,7 +67,7 @@ public class AuthorizationFilter implements ContainerRequestFilter {
          @Override
          public boolean isUserInRole(String role) {
             User user = (User)this.getUserPrincipal();
-			return user != null && user.getRole().equals(role);
+			return user != null && user.getRole() != null && user.getRole().equals(role);
          }
 
          @Override
