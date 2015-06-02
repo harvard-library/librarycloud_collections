@@ -42,11 +42,11 @@ public class CollectionsResourceTest  {
 	}
 
 	// @Test
-	public void testGetAllCollections() {
-		WebTarget target = this.getTarget();
-		String result = target.path("v2/collections").request().get(String.class);
-		assertEquals("Request for all collections!!!!", result);
-	}
+	// public void testGetAllCollections() {
+	// 	WebTarget target = this.getTarget();
+	// 	String result = target.path("v2/collections").request().get(String.class);
+	// 	assertEquals("Request for all collections!!!!", result);
+	// }
 
 
 }
