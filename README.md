@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/harvard-library/librarycloud_collections.png?branch=master)](https://travis-ci.org/harvard-library/librarycloud_collections)
 
+[![Build Status](https://travis-ci.org/harvard-library/librarycloud_collections.png?branch=develop)](https://travis-ci.org/harvard-library/librarycloud_collections)
+
 LibraryCloud Collections API
 ============================
 
