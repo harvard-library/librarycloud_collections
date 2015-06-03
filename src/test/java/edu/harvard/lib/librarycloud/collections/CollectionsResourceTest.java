@@ -41,11 +41,11 @@ public class CollectionsResourceTest  {
 		baseURL = props.getProperty("base_test_url");
 	}
 
-	@Test
-	public void testGetAllCollections() {
-		WebTarget target = this.getTarget();
-		String result = target.path("v2/collections").request().get(String.class);
-	}
+	// @Test
+	// public void testGetAllCollections() {
+	// 	WebTarget target = this.getTarget();
+	// 	String result = target.path("v2/collections").request().get(String.class);
+	// }
 
 
 }
