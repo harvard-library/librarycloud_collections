@@ -1,6 +1,1 @@
 language: java
-install:
-  - sudo apt-get update
-  - sudo apt-get install tomcat7
-before_script:
-  - mvn tomcat7:deploy
