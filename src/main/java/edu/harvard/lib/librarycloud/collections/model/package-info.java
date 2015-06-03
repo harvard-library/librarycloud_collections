@@ -12,11 +12,11 @@
     xmlns = {   
 		@javax.xml.bind.annotation.XmlNs(namespaceURI = "http://api.lib.harvard.edu/v2/collection/", prefix = ""),
 		@javax.xml.bind.annotation.XmlNs(namespaceURI = "http://purl.org/dc/elements/1.1/", prefix = "dc"),
-		@javax.xml.bind.annotation.XmlNs(namespaceURI = "http://purl.org/dc/terms/", prefix = "dcterms"),
-		@javax.xml.bind.annotation.XmlNs(namespaceURI = "http://purl.org/dc/dcmitype/", prefix = "dcmitype"),
-		@javax.xml.bind.annotation.XmlNs(namespaceURI = "http://www.loc.gov/loc.terms/relators/", prefix = "marcrel"),
-		@javax.xml.bind.annotation.XmlNs(namespaceURI = "http://purl.org/cld/terms/", prefix = "cld"),
-		@javax.xml.bind.annotation.XmlNs(namespaceURI = "http://purl.org/cld/cdtype/", prefix = "cdtype")
-    },  
+		@javax.xml.bind.annotation.XmlNs(namespaceURI = "http://purl.org/dc/terms/", prefix = "dcterms")
+		// @javax.xml.bind.annotation.XmlNs(namespaceURI = "http://purl.org/dc/dcmitype/", prefix = "dcmitype"),
+		// @javax.xml.bind.annotation.XmlNs(namespaceURI = "http://www.loc.gov/loc.terms/relators/", prefix = "marcrel"),
+		// @javax.xml.bind.annotation.XmlNs(namespaceURI = "http://purl.org/cld/terms/", prefix = "cld"),
+		// @javax.xml.bind.annotation.XmlNs(namespaceURI = "http://purl.org/cld/cdtype/", prefix = "cdtype")
+    } ,  
     elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED) 
-package edu.harvard.librarycloud.collections.model;
+package edu.harvard.lib.librarycloud.collections.model;

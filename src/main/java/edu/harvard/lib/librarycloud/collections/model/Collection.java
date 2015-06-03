@@ -80,7 +80,7 @@ public class Collection  {
 	@Lob
 	private String accessRights;
 
-	@XmlElement(namespace="http://purl.org/dc/elements/1.1", name="identifier")
+	@XmlElement(namespace="http://purl.org/dc/elements/1.1/", name="identifier")
 	public int getId() {
 		return id;
 	}
@@ -123,7 +123,7 @@ public class Collection  {
 		}
 	}
 
-	@XmlElement(namespace="http://purl.org/dc/elements/1.1", name="type")
+	@XmlElement(namespace="http://purl.org/dc/elements/1.1/", name="type")
 	public String getCollection() {
 		return "collection";
 	}
@@ -151,7 +151,7 @@ public class Collection  {
 	// 	return this.extent;
 	// }
 
-	@XmlElement(namespace="http://purl.org/dc/elements/1.1", name="language")
+	@XmlElement(namespace="http://purl.org/dc/elements/1.1/", name="language")
 	public String getLanguage() {
 		return language;
 	}
@@ -160,7 +160,7 @@ public class Collection  {
 		this.language = language;
 	}
 
-	@XmlElement(namespace="http://purl.org/dc/elements/1.1", name="rights")
+	@XmlElement(namespace="http://purl.org/dc/elements/1.1/", name="rights")
 	public String getRights() {
 		return rights;
 	}
@@ -169,7 +169,7 @@ public class Collection  {
 		this.rights = rights;
 	}
 
-	@XmlElement(namespace="http://purl.org/dc/terms", name="accessRights")
+	@XmlElement(namespace="http://purl.org/dc/terms/", name="accessRights")
 	public String getAccessRights() {
 		return accessRights;
 	}

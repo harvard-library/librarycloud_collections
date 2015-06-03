@@ -32,53 +32,51 @@ public class CollectionDAO  {
 		CriteriaQuery<Collection> criteriaQuery = criteriaBuilder.createQuery(Collection.class);
 
 		List<Predicate> predicateANDList = new LinkedList<Predicate>();
-		List<Predicate> predicateORList = new LinkedList<Predicate>();
 		EntityType<Collection> type = em.getMetamodel().entity(Collection.class);
 
 		Root<Collection> collectionRoot = criteriaQuery.from(Collection.class);
 		criteriaQuery.select(collectionRoot);
 
-
-
 		List<Collection> result;
-//		if (!exactMatch) //Exact functionality not currently supported.
+//		if (!exactMatch) // Exact functionality not currently supported.
 //		{
 			title = "%" + (title == null? "" : title.replace('*','%')) + "%";
 			summary = "%" + (summary == null? "" : summary.replace('*','%')) + "%";
 			q = "%" + (q == null? "" : q.replace('*','%')) + "%";
 //		}
 
-		if (title != null && title.length() > (exactMatch ? 0: 2)){
+		if (title != null && title.length() > (exactMatch ? 0 : 2)) {
 			log.debug("title = " + title);
 			predicateANDList.add(criteriaBuilder.like(collectionRoot.get(type.getDeclaredSingularAttribute("title", String.class)), title));
+		}
 
-		} else if (summary != null && summary.length() > (exactMatch ? 0: 2)){
+		if (summary != null && summary.length() > (exactMatch ? 0 : 2)) {
 			predicateANDList.add(criteriaBuilder.like(collectionRoot.get(type.getDeclaredSingularAttribute("summary", String.class)), summary));
-
-		} else if (q != null && q.length() > (exactMatch ? 0: 2)){
-			predicateORList.add(criteriaBuilder.like(collectionRoot.get(type.getDeclaredSingularAttribute("title", String.class)), q));
-			predicateORList.add(criteriaBuilder.like(collectionRoot.get(type.getDeclaredSingularAttribute("summary", String.class)), q));
 		} 
 
-		if(sortField != ""){
-			if(shouldSortAsc == false){
+		// "q" is never an exact match search
+		if (q != null && q.length() > 2) {
+			List<Predicate> predicateORList = new LinkedList<Predicate>();
+			predicateORList.add(criteriaBuilder.like(collectionRoot.get(type.getDeclaredSingularAttribute("title", String.class)), q));
+			predicateORList.add(criteriaBuilder.like(collectionRoot.get(type.getDeclaredSingularAttribute("summary", String.class)), q));
+			Predicate[] predicateORArray = new Predicate[predicateORList.size()];
+			predicateORArray = predicateORList.toArray(predicateORArray);
+			predicateANDList.add(criteriaBuilder.or(predicateORArray));
+		} 
+
+		if (sortField != "") {
+			if (shouldSortAsc == false){
 				criteriaQuery.orderBy(criteriaBuilder.desc(collectionRoot.get(type.getDeclaredSingularAttribute(sortField, String.class))));
 			} else {
 				criteriaQuery.orderBy(criteriaBuilder.asc(collectionRoot.get(type.getDeclaredSingularAttribute(sortField, String.class))));
 			}
 		}
 
-
 		Predicate[] predicateANDArray = new Predicate[predicateANDList.size()];
 		predicateANDArray = predicateANDList.toArray(predicateANDArray);
-		Predicate[] predicateORArray = new Predicate[predicateORList.size()];
-		predicateORArray = predicateORList.toArray(predicateORArray);
 
-		if(predicateANDList.size() > 0){
+		if (predicateANDList.size() > 0) {
 			criteriaQuery.where(criteriaBuilder.and(predicateANDArray));
-		}
-		if(predicateORList.size() > 0){
-			criteriaQuery.where(criteriaBuilder.or(predicateORArray));
 		}
 
 		TypedQuery query = em.createQuery(criteriaQuery);
