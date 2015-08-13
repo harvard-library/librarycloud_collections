@@ -107,13 +107,16 @@ public class Collection  {
 
 	public void addItem(Item item) {
 
+		/* Do not add items with blank ID's */
+		if (item.getItemId().trim().isEmpty()) {
+			return;
+		}
 		/* Do not add if the item already exists */
 		for (Item i : items) {
 			if (i.getItemId().equals(item.getItemId())) {
 				return;
 			}
 		}
-		// item.setCollection(this);
 		items.add(item);
 	}
 
