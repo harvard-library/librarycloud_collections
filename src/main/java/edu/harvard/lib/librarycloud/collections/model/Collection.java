@@ -1,6 +1,6 @@
 package edu.harvard.lib.librarycloud.collections.model;
 
-import java.util.List;
+import java.util.*;
 import javax.persistence.*;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -52,6 +52,9 @@ import org.eclipse.persistence.oxm.annotations.XmlInverseReference;
 @XmlRootElement(namespace = "http://api.lib.harvard.edu/v2/collection/", name="collection")
 public class Collection  {
 
+	public static final String ROLE_OWNER = "owner";
+	public static final String ROLE_EDITOR = "editor";
+
 	public Collection() {}
 
 	@Id @GeneratedValue
@@ -61,8 +64,8 @@ public class Collection  {
     @JoinTable(name="collection_item")
     private List<Item> items;
 
-    @ManyToOne
-    private User user;
+	@OneToMany(mappedBy = "collection", cascade = CascadeType.ALL, fetch = FetchType.EAGER )
+    private List<UserCollection> users;
 
 	@Column(nullable = false)
 	private String title;
@@ -95,14 +98,12 @@ public class Collection  {
 	}
 
 	@XmlTransient
-	public User getUser()
-	{
-		return user;
+	public List<UserCollection> getUsers() {
+		return users;
 	}
 
-	public void setUser(User user)
-	{
-		this.user = user;
+	public void setUsers(List<UserCollection> users) {
+		this.users = users;
 	}
 
 	public void addItem(Item item) {
@@ -176,6 +177,50 @@ public class Collection  {
 
 	public void setAccessRights(String accessRights) {
 		this.accessRights = accessRights;
+	}
+
+	/* HELPER METHODS */
+	public boolean isUserOwner(User u) {
+		UserCollection uc = getUserCollection(u);
+		if (uc != null && uc.getRole().getName() == ROLE_OWNER)
+			return true;
+
+		return false;
+	}
+	public boolean canUserEditItems(User u) {
+		return getUserCollection(u) != null;
+	}
+
+	public void setUserRole(User u, Role role) {
+		UserCollection uc = getUserCollection(u);
+		if (uc == null) {
+			uc = new UserCollection(u, this, role);
+			users.add(uc);
+		}
+		else{
+			uc.setRole(role);
+		}
+	}
+
+	public void removeUser(User u) {
+		UserCollection uc = getUserCollection(u);
+		if (uc != null) {
+			users.remove(uc);
+		}
+	}
+
+	private UserCollection getUserCollection(User u) {
+		if (u != null) {
+			List<UserCollection> ucs = this.getUsers();
+			if (ucs != null) {
+				for (UserCollection uc : ucs) {
+					if (uc.getUser().getId() == u.getId()) {
+						return uc;
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 }

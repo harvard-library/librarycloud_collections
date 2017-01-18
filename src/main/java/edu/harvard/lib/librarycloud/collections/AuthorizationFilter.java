@@ -41,51 +41,45 @@ public class AuthorizationFilter implements ContainerRequestFilter {
 	@Override
 	public void filter(ContainerRequestContext requestContext)
 		throws IOException {
-		
 
-     // here we set a custom security context
-     log.debug("Setting customSecurityContext");
 
-     final ContainerRequestContext finalRequestContext = requestContext;
+        // here we set a custom security context
+        log.debug("Setting customSecurityContext");
 
-     finalRequestContext.setSecurityContext(new SecurityContext() {
-         @Override
-         public Principal getUserPrincipal() {
-             MultivaluedMap<String, String> headers = finalRequestContext.getHeaders();
-             if (!(headers.containsKey(APIKEYHEADER) 
-             	&& (headers.getFirst(APIKEYHEADER).length() > 0))){
-             	log.debug("api key (null): " + headers.getFirst(APIKEYHEADER));
-             	return null;
-             }
+        final ContainerRequestContext finalRequestContext = requestContext;
 
-           	log.debug("api key: " + headers.getFirst(APIKEYHEADER));
+        finalRequestContext.setSecurityContext(new SecurityContext() {
+            @Override
+            public Principal getUserPrincipal() {
+                MultivaluedMap<String, String> headers = finalRequestContext.getHeaders();
+                if (!(headers.containsKey(APIKEYHEADER)
+                        && (headers.getFirst(APIKEYHEADER).length() > 0))) {
+                    log.debug("api key (null): " + headers.getFirst(APIKEYHEADER));
+                    return null;
+                }
 
-             User user = collectionDao.getUserForAPIToken(headers.getFirst(APIKEYHEADER));
-             return user;
-         }
+                log.debug("api key: " + headers.getFirst(APIKEYHEADER));
 
-         @Override
-         public boolean isUserInRole(String role) {
-            User user = (User)this.getUserPrincipal();
-			return user != null && user.getRole() != null && user.getRole().equals(role);
-         }
+                User user = collectionDao.getUserForAPIToken(headers.getFirst(APIKEYHEADER));
+                return user;
+            }
 
-         @Override
-         public boolean isSecure() {
-             return false;
-         }
+            @Override
+            public boolean isUserInRole(String role) {
+                User user = (User) this.getUserPrincipal();
+                return user != null && user.getRole() != null && user.getRole().equals(role);
+            }
 
-         @Override
-         public String getAuthenticationScheme() {
-             return "custom";
-         }
+            @Override
+            public boolean isSecure() {
+                return false;
+            }
 
-         public boolean canUserModifyData(Collection c){
-         	User user = (User)this.getUserPrincipal();
-         	return user != null && (user.getId() == c.getUser().getId()
-            || this.isUserInRole("admin"));
-         }
-     });
+            @Override
+            public String getAuthenticationScheme() {
+                return "custom";
+            }
+        });
 
-	}
+    }
 }

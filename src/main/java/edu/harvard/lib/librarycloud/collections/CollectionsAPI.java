@@ -149,14 +149,14 @@ public class CollectionsAPI {
             return Response.status(Status.UNAUTHORIZED).build();
         }      
         
-        collection.setUser(user);
-
-
-        Integer id = collectionDao.createCollection(collection);
+        Integer id = collectionDao.createCollection(collection, user);
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
         URI uri = uriBuilder.path(id.toString()).build();
         return Response.created(uri).build();        
     }
+
+
+
 
     /**
      * Update a collection
@@ -164,7 +164,7 @@ public class CollectionsAPI {
     @PUT @Path("collections/{id}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response updateCollection(@PathParam("id") Integer id, Collection collection) {
-        if (!this.checkUserAuthorization(id)) {
+        if (!this.canEditItems(id)) {
             return Response.status(Status.UNAUTHORIZED).build();
         }
     	Collection result = collectionDao.updateCollection(id,collection);
@@ -191,7 +191,7 @@ public class CollectionsAPI {
         if (c == null) {
             return Response.status(Status.NOT_FOUND).build();
         }
-        if (!this.checkUserAuthorization(c)) {
+        if (!this.isOwner(c)) {
             return Response.status(Status.UNAUTHORIZED).build();
         }
 
@@ -218,7 +218,7 @@ public class CollectionsAPI {
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response addItems(@PathParam("id") Integer id, List<Item> items) {
 
-        if (!this.checkUserAuthorization(id)) {
+        if (!this.canEditItems(id)) {
             return Response.status(Status.UNAUTHORIZED).build();
         }
 
@@ -245,7 +245,7 @@ public class CollectionsAPI {
     public Response removeItem(@PathParam("id") Integer id, 
                                @PathParam("itemid") String external_item_id) {
 
-        if (!this.checkUserAuthorization(id)) {
+        if (!this.canEditItems(id)) {
             return Response.status(Status.UNAUTHORIZED).build();
         }
 
@@ -263,23 +263,111 @@ public class CollectionsAPI {
         return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();        
     }
 
+    /*
+   Add or update a user to a collection
+    */
+    @POST @Path("collections/{id}/user")
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response addOrUpdateUser(@PathParam("id") Integer id, UserCollection user){
+        Collection c = collectionDao.getCollection(id);
+
+        if (c == null) {
+            return Response.status(Status.NOT_FOUND).build();
+        }
+        if (!this.isOwner(c)) {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+
+        collectionDao.addOrUpdateUserCollection(c, user);
+
+        return Response.status(Status.NOT_FOUND).build();
+    }
+
+    /*
+    Delete a user for a collection
+     */
+    @DELETE @Path("collections/{id}/user/{user_id}")
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response deleteUser(@PathParam("id") Integer id, @PathParam("user_id") Integer userId) {
+        Collection c = collectionDao.getCollection(id);
+        UserCollection uc = collectionDao.getUserCollection(userId);
+
+        if (c == null || uc == null) {
+            return Response.status(Status.NOT_FOUND).build();
+        }
+        if (!this.isOwner(c)) {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+
+        collectionDao.deleteUserCollection(uc);
+
+        return Response.status(Status.NO_CONTENT).build();
+    }
+
+    /*
+    Get the users for a collection
+     */
+    @GET @Path("collections/{id}/user")
+    @JSONP(queryParam = "callback")
+    @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
+    public  List<UserCollection> getUsers(@PathParam("id") Integer id) {
+        Collection c = collectionDao.getCollection(id);
+
+        if (c == null || !this.isOwner(c)) {
+            throw new NotFoundException();
+        }
+
+        return collectionDao.getUserCollections(c);
+    }
+
+    @GET @Path("user/{search}")
+    @JSONP(queryParam = "callback")
+    @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
+    public List<User> getUsers(@PathParam("search") String search) {
+        return collectionDao.getUsers(search);
+    }
+
+    @GET @Path("role")
+    @JSONP(queryParam = "callback")
+    @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
+    public List<Role> getRoles() {
+        return collectionDao.getRoles();
+    }
+
     /**
      * Confirm a users access for modifying data.
      */
 
-    private boolean checkUserAuthorization(Integer collectionId) {
-        Collection c = collectionDao.getCollection(collectionId);
-        return (c == null ? true : checkUserAuthorization(c));
-    }
-
-    private boolean checkUserAuthorization(Collection c) {
-        if (c == null) {
-            return true;
-        }
+    private boolean isOwner(Collection c) {
+        if (c == null)
+            return false;
 
         User user = (User) securityContext.getUserPrincipal();
+        if (user != null) {
+            if (isSystemAdmin())
+                return true;
 
-        return user != null && (user.getId() == c.getUser().getId()
-            || securityContext.isUserInRole("admin"));
+            return c.isUserOwner(user);
+        }
+        return false;
+    }
+
+    private boolean canEditItems(Integer collectionId) {
+        Collection c = collectionDao.getCollection(collectionId);
+        if (c == null)
+            return false;
+
+        User user = (User) securityContext.getUserPrincipal();
+        if (user != null) {
+            if (isSystemAdmin())
+                return true;
+
+            return c.canUserEditItems(user);
+        }
+        return false;
+    }
+
+    private boolean isSystemAdmin() {
+        return securityContext.isUserInRole("admin");
     }
 }

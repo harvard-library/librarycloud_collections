@@ -108,16 +108,17 @@ public class CollectionDAO  {
 	 * @return                  User for that token.
 	 */
 
-	public User getUserForAPIToken(String token)
-	{
+	public User getUserForAPIToken(String token) {
 		String query = "SELECT u FROM User u " +
-					   "WHERE u.token = :token";
-	try{
-		User result = em.createQuery(query, User.class)
-									 .setParameter("token", token).setMaxResults(1)
-							 .getSingleResult();
-		return result;
-	} catch (NoResultException e) { return null;}
+				"WHERE u.token = :token";
+		try {
+			User result = em.createQuery(query, User.class)
+					.setParameter("token", token).setMaxResults(1)
+					.getSingleResult();
+			return result;
+		} catch (NoResultException e) {
+			return null;
+		}
 	}
 
 
@@ -187,8 +188,12 @@ public class CollectionDAO  {
 	}
 
     @Transactional
-	public Integer createCollection(Collection c) {
+	public Integer createCollection(Collection c, User u) {
+		//first save the collection to generate an Id
 		em.persist(c);
+		//then get or create the role and assign the role to the user
+		Role owner = getOrCreateRole(Collection.ROLE_OWNER);
+		c.setUserRole(u, owner);
 		em.flush();
 		return c.getId();
 	}
@@ -277,6 +282,67 @@ public class CollectionDAO  {
 		em.persist(c);
 		em.flush();
 		return true;
+	}
+
+	public List<User> getUsers(String search) {
+		String query = "select i from User u WHERE u.email like '%:search%' OR u.name like '%:search%";
+		List<User> result = em.createQuery(query, User.class)
+				.setParameter("search",search)
+				.getResultList();
+		return result;
+	}
+
+	public List<Role> getRoles() {
+		String query = "select i from Role";
+		List<Role> result = em.createQuery(query, Role.class)
+				.getResultList();
+		return result;
+	}
+
+	@Transactional
+	public Role getOrCreateRole(String name) {
+		Role result = null;
+		String query = "SELECT r FROM Role r " +
+				"WHERE r.name = :name";
+		try {
+			 result = em.createQuery(query, Role.class)
+					.setParameter("name", name).setMaxResults(1)
+					.getSingleResult();
+
+		} catch (NoResultException e) {
+			result = new Role(name);
+			em.persist(result);
+			em.flush();
+		}
+		return result;
+	}
+
+	@Transactional
+	public void addOrUpdateUserCollection(Collection c, UserCollection uc) {
+
+	}
+
+	@Transactional
+	public void deleteUserCollection(UserCollection uc) {
+		em.remove(uc);
+	}
+
+	public UserCollection getUserCollection(int id) {
+		UserCollection result = null;
+		try {
+			result = em.find(UserCollection.class, id);
+		} catch (NoResultException e) {
+			return null;
+		}
+		return result;
+	}
+
+	public List<UserCollection> getUserCollections(Collection c) {
+		String query = "select i from User_Collection uc WHERE uc.collections_id = :collectionId";
+		List<UserCollection> result = em.createQuery(query, UserCollection.class)
+				.setParameter("collectionId", c.getId())
+				.getResultList();
+		return result;
 	}
 
 }
