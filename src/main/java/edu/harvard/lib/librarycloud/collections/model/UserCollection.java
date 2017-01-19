@@ -15,10 +15,10 @@ public class UserCollection {
     @Embeddable
     public static class UserCollectionId implements Serializable {
 
-        @Column(name="fk_user")
+        @Column(name="user_id")
         protected int user_id;
 
-        @Column(name="fk_collection")
+        @Column(name="collection_id")
         protected int collection_id;
 
         public UserCollectionId () {}
@@ -70,11 +70,11 @@ public class UserCollection {
     private UserCollectionId id;
 
     @ManyToOne
-    @JoinColumn(name="fk_user", insertable=false, updatable=false)
+    @JoinColumn(name="user_id", insertable=false, updatable=false)
     private User user;
 
     @ManyToOne
-    @JoinColumn(name="fk_collection", insertable=false, updatable=false)
+    @JoinColumn(name="collection_id", insertable=false, updatable=false)
     private Collection collection;
 
     @OneToOne(cascade = CascadeType.ALL)

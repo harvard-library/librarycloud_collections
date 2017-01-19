@@ -80,8 +80,8 @@ public class Collection  {
 	@Lob
 	private String rights;
 
-	@Lob
-	private String accessRights;
+	@Transient
+	private List<String> accessRights;
 
 	@XmlElement(namespace="http://purl.org/dc/elements/1.1/", name="identifier")
 	public int getId() {
@@ -99,6 +99,8 @@ public class Collection  {
 
 	@XmlTransient
 	public List<UserCollection> getUsers() {
+		if (users == null)
+			users = new ArrayList<UserCollection>();
 		return users;
 	}
 
@@ -171,11 +173,11 @@ public class Collection  {
 	}
 
 	@XmlElement(namespace="http://purl.org/dc/terms/", name="accessRights")
-	public String getAccessRights() {
+	public List<String> getAccessRights() {
 		return accessRights;
 	}
 
-	public void setAccessRights(String accessRights) {
+	public void setAccessRights(List<String> accessRights) {
 		this.accessRights = accessRights;
 	}
 

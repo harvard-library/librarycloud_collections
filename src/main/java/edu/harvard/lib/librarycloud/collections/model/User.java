@@ -8,6 +8,17 @@ import java.security.*;
 @Table(name = "user")
 
 public class User implements Principal {
+
+	public User() {}
+
+	public User(int id, String email, String name) {
+		setId(id);
+		setEmail(email);
+		setName(name);
+	}
+
+
+
 	@Id
 	@GeneratedValue
 	private int id;
@@ -25,7 +36,7 @@ public class User implements Principal {
 	@OneToOne
 	private UserType userType;
 
-	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
 	private List<UserCollection> collections;
 
 	//getters/setters
@@ -33,6 +44,8 @@ public class User implements Principal {
 	public int getId() {
 		return id;
 	}
+
+	public void setId(int id) { this.id = id; }
 
 	public List<UserCollection> getCollections() {
 		return collections;

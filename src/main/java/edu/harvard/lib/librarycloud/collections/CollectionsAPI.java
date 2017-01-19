@@ -53,9 +53,12 @@ public class CollectionsAPI {
             @QueryParam("sort.asc") String sortAsc, @QueryParam("sort.desc") String sortDesc,
             @QueryParam("start") Integer start
             ) {
+
+        User user = (User)securityContext.getUserPrincipal();
+
         List<Collection> collections;
         if (contains != null) {
-            collections = collectionDao.getCollectionsForItem(contains);
+            collections = collectionDao.getCollectionsForItem(user, contains);
         } else {
             //handle sorting parameters
             String sortField = "";
@@ -83,7 +86,7 @@ public class CollectionsAPI {
             //should probably be implemented.
             sortField = sortField.replace("abstract", "summary"); 
             try{
-                collections = collectionDao.getCollections(q, title, summary, false, limit, sortField, shouldSortAsc, start);
+                collections = collectionDao.getCollections(user, q, title, summary, false, limit, sortField, shouldSortAsc, start);
             } catch (Exception e){
                 throw new BadRequestException();
             }
@@ -268,7 +271,7 @@ public class CollectionsAPI {
     */
     @POST @Path("collections/{id}/user")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response addOrUpdateUser(@PathParam("id") Integer id, UserCollection user){
+    public Response addOrUpdateUserCollection(@PathParam("id") Integer id, UserCollection user){
         Collection c = collectionDao.getCollection(id);
 
         if (c == null) {
@@ -288,7 +291,7 @@ public class CollectionsAPI {
      */
     @DELETE @Path("collections/{id}/user/{user_id}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response deleteUser(@PathParam("id") Integer id, @PathParam("user_id") Integer userId) {
+    public Response deleteUserCollection(@PathParam("id") Integer id, @PathParam("user_id") Integer userId) {
         Collection c = collectionDao.getCollection(id);
         UserCollection uc = collectionDao.getUserCollection(userId);
 
@@ -310,12 +313,15 @@ public class CollectionsAPI {
     @GET @Path("collections/{id}/user")
     @JSONP(queryParam = "callback")
     @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
-    public  List<UserCollection> getUsers(@PathParam("id") Integer id) {
+    public  List<UserCollection> getUserCollections(@PathParam("id") Integer id) {
+
         Collection c = collectionDao.getCollection(id);
 
-        if (c == null || !this.isOwner(c)) {
+        if (c == null) {
             throw new NotFoundException();
         }
+        if (!this.isOwner(c))
+            throw new NotAuthorizedException("");
 
         return collectionDao.getUserCollections(c);
     }
@@ -324,6 +330,10 @@ public class CollectionsAPI {
     @JSONP(queryParam = "callback")
     @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
     public List<User> getUsers(@PathParam("search") String search) {
+
+        if (!isAuthenticated())
+            throw new NotAuthorizedException("");
+
         return collectionDao.getUsers(search);
     }
 
@@ -331,6 +341,10 @@ public class CollectionsAPI {
     @JSONP(queryParam = "callback")
     @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
     public List<Role> getRoles() {
+
+        if (!isAuthenticated())
+            throw new NotAuthorizedException("");
+
         return collectionDao.getRoles();
     }
 
@@ -369,5 +383,9 @@ public class CollectionsAPI {
 
     private boolean isSystemAdmin() {
         return securityContext.isUserInRole("admin");
+    }
+
+    private boolean isAuthenticated(){
+        return (securityContext.getUserPrincipal() != null);
     }
 }

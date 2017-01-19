@@ -23,7 +23,7 @@ public class CollectionDAO  {
 
 	public CollectionDAO() {}
 
-	public List<Collection> getCollections(String q, String title, 
+	public List<Collection> getCollections(User u, String q, String title,
 			String summary, boolean exactMatch, Integer limit,
 			String sortField, boolean shouldSortAsc, Integer start
 			) {
@@ -85,6 +85,9 @@ public class CollectionDAO  {
 		query.setFirstResult(start);
 
 		result = query.getResultList();
+
+		result = assignRights(result, u);
+
 		return result;
 	}
 
@@ -93,12 +96,15 @@ public class CollectionDAO  {
 	 * @param  external_item_id ID of the item to look for
 	 * @return                  List of Collections containing the item
 	 */
-	public List<Collection> getCollectionsForItem(String external_item_id) {
+	public List<Collection> getCollectionsForItem(User u, String external_item_id) {
 		String query = "SELECT DISTINCT c FROM Collection c INNER JOIN c.items i " +
 					   "WHERE i.itemId = :external_item_id";
 		List<Collection> result = em.createQuery(query, Collection.class)
 									 .setParameter("external_item_id", external_item_id)
 									 .getResultList();
+
+		result = assignRights(result, u);
+
 		return result;
 	}
 
@@ -284,16 +290,19 @@ public class CollectionDAO  {
 		return true;
 	}
 
+	/*
+	gets Users from the database based on a search string.  Note that only some user characteristics are returned.
+	 */
 	public List<User> getUsers(String search) {
-		String query = "select i from User u WHERE u.email like '%:search%' OR u.name like '%:search%";
+		String query = "select new User(u.id, u.email, u.name) from User u WHERE u.email like :search OR u.name like :search";
 		List<User> result = em.createQuery(query, User.class)
-				.setParameter("search",search)
+				.setParameter("search", "%" + search + "%")
 				.getResultList();
 		return result;
 	}
 
 	public List<Role> getRoles() {
-		String query = "select i from Role";
+		String query = "select r from Role r";
 		List<Role> result = em.createQuery(query, Role.class)
 				.getResultList();
 		return result;
@@ -338,11 +347,41 @@ public class CollectionDAO  {
 	}
 
 	public List<UserCollection> getUserCollections(Collection c) {
-		String query = "select i from User_Collection uc WHERE uc.collections_id = :collectionId";
+		String query = "select uc from UserCollection uc WHERE uc.collection.id = :collectionId";
 		List<UserCollection> result = em.createQuery(query, UserCollection.class)
 				.setParameter("collectionId", c.getId())
 				.getResultList();
 		return result;
+	}
+
+	public List<UserCollection> getUserCollectionsForUser(User u) {
+		String query = "select uc from UserCollection uc WHERE uc.user.id = :userId";
+		List<UserCollection> result = em.createQuery(query, UserCollection.class)
+				.setParameter("userId", u.getId())
+				.getResultList();
+		return result;
+	}
+
+	private List<Collection> assignRights(List<Collection> coll, User u) {
+		//if this is a call secured with a user call, attribute the collections list with the permissions for this user
+		if (u != null) {
+			List<UserCollection> ucs = getUserCollectionsForUser(u);
+			if (ucs != null){
+				for(UserCollection uc : ucs) {
+					Collection c = uc.getCollection();
+					log.debug(c.getTitle() + ":" + c.getId());
+					for (Collection innerc : coll) {
+						if (innerc.getId() == c.getId()) {
+							List<String> accessRights = new ArrayList<String>();
+							accessRights.add(uc.getRole().getName());
+							innerc.setAccessRights(accessRights);
+							break;
+						}
+					}
+				}
+			}
+		}
+		return coll;
 	}
 
 }
