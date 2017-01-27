@@ -6,6 +6,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import edu.harvard.lib.librarycloud.collections.dao.CollectionDAO;
+import org.apache.log4j.Logger;
 import org.eclipse.persistence.oxm.annotations.XmlInverseReference;
 
 /* Implements a subset of the Dublin Core Collections Application Profile (DCCAP)
@@ -51,6 +53,8 @@ import org.eclipse.persistence.oxm.annotations.XmlInverseReference;
 @Table(name="collection")
 @XmlRootElement(namespace = "http://api.lib.harvard.edu/v2/collection/", name="collection")
 public class Collection  {
+	@Transient
+	Logger log = Logger.getLogger(Collection.class);
 
 	public static final String ROLE_OWNER = "owner";
 	public static final String ROLE_EDITOR = "editor";
@@ -64,8 +68,8 @@ public class Collection  {
     @JoinTable(name="collection_item")
     private List<Item> items;
 
-	@OneToMany(mappedBy = "collection", cascade = CascadeType.ALL, fetch = FetchType.EAGER )
-    private List<UserCollection> users;
+	@OneToMany(mappedBy = "collection", cascade = CascadeType.ALL)
+    private List<UserCollection> users = new ArrayList<UserCollection>();
 
 	@Column(nullable = false)
 	private String title;
@@ -97,10 +101,7 @@ public class Collection  {
 		this.items = items;
 	}
 
-	@XmlTransient
 	public List<UserCollection> getUsers() {
-		if (users == null)
-			users = new ArrayList<UserCollection>();
 		return users;
 	}
 
@@ -222,6 +223,7 @@ public class Collection  {
 				}
 			}
 		}
+		log.debug("user " + u.getName() + " tried to access collection " + this.getId() + " and failed.");
 		return null;
 	}
 
