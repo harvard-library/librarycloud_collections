@@ -69,7 +69,7 @@ public class Collection  {
     private List<Item> items;
 
 	@OneToMany(mappedBy = "collection", cascade = CascadeType.ALL)
-    private List<UserCollection> users = new ArrayList<UserCollection>();
+    private List<UserCollection> users = new ArrayList<>();
 
 	@Column(nullable = false)
 	private String title;
@@ -183,30 +183,7 @@ public class Collection  {
 	}
 
 	/* HELPER METHODS */
-	public boolean isUserOwner(User u) {
-		UserCollection uc = getUserCollection(u);
-		if (uc != null && uc.getRole().getName() == ROLE_OWNER)
-			return true;
-
-		return false;
-	}
-	public boolean canUserEditItems(User u) {
-		return getUserCollection(u) != null;
-	}
-
-	public void setUserRole(User u, Role role) {
-		UserCollection uc = getUserCollection(u);
-		if (uc == null) {
-			uc = new UserCollection(u, this, role);
-			users.add(uc);
-		}
-		else{
-			uc.setRole(role);
-		}
-	}
-
-	public void removeUser(User u) {
-		UserCollection uc = getUserCollection(u);
+	public void removeUser(UserCollection uc) {
 		if (uc != null) {
 			users.remove(uc);
 		}
@@ -223,7 +200,6 @@ public class Collection  {
 				}
 			}
 		}
-		log.debug("user " + u.getName() + " tried to access collection " + this.getId() + " and failed.");
 		return null;
 	}
 

@@ -24,7 +24,7 @@ import edu.harvard.lib.librarycloud.collections.model.*;
 @Path("/v2")
 public class CollectionsAPI {
 
-    Logger log = Logger.getLogger(CollectionsAPI.class); 
+    private Logger log = Logger.getLogger(CollectionsAPI.class);
 
     @Context 
     UriInfo uriInfo;
@@ -63,13 +63,13 @@ public class CollectionsAPI {
             //handle sorting parameters
             String sortField = "";
             boolean shouldSortAsc = true;
-            if(sort != null && sort != ""){
+            if(sort != null && !sort.equals("")){
                 sortField = sort;
                 shouldSortAsc = true;
-            } else if(sortAsc != null && sortAsc != ""){
+            } else if(sortAsc != null && !sortAsc.equals("")){
                 sortField = sortAsc;
                 shouldSortAsc = true;
-            } else if(sortDesc != null && sortDesc != ""){
+            } else if(sortDesc != null && !sortDesc.equals("")){
                 sortField = sortDesc;
                 shouldSortAsc = false;
             }
@@ -118,7 +118,7 @@ public class CollectionsAPI {
     @JSONP(queryParam = "callback")
     @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
     public List<Item> getItems(@PathParam("external_ids") String external_ids) {
-        List<String> external_id_list = new ArrayList<String>(Arrays.asList(external_ids.split(",")));
+        List<String> external_id_list = new ArrayList<>(Arrays.asList(external_ids.split(",")));
         if (external_id_list.isEmpty()) {
             throw new NotFoundException();
         }
@@ -361,7 +361,7 @@ public class CollectionsAPI {
             if (isSystemAdmin())
                 return true;
 
-            return c.isUserOwner(user);
+            return collectionDao.isUserOwner(c, user);
         }
         return false;
     }
@@ -376,7 +376,7 @@ public class CollectionsAPI {
             if (isSystemAdmin())
                 return true;
 
-            return c.canUserEditItems(user);
+            return collectionDao.canUserEditItems(c, user);
         }
         return false;
     }

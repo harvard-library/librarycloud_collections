@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import edu.harvard.lib.librarycloud.collections.model.*;
 
 public class CollectionDAO  {
-    Logger log = Logger.getLogger(CollectionDAO.class); 
+    private Logger log = Logger.getLogger(CollectionDAO.class);
 
     @PersistenceContext
     private EntityManager em;
@@ -31,7 +31,7 @@ public class CollectionDAO  {
 		CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
 		CriteriaQuery<Collection> criteriaQuery = criteriaBuilder.createQuery(Collection.class);
 
-		List<Predicate> predicateANDList = new LinkedList<Predicate>();
+		List<Predicate> predicateANDList = new LinkedList<>();
 		EntityType<Collection> type = em.getMetamodel().entity(Collection.class);
 
 		Root<Collection> collectionRoot = criteriaQuery.from(Collection.class);
@@ -56,7 +56,7 @@ public class CollectionDAO  {
 
 		// "q" is never an exact match search
 		if (q != null && q.length() > 2) {
-			List<Predicate> predicateORList = new LinkedList<Predicate>();
+			List<Predicate> predicateORList = new LinkedList<>();
 			predicateORList.add(criteriaBuilder.like(collectionRoot.get(type.getDeclaredSingularAttribute("title", String.class)), q));
 			predicateORList.add(criteriaBuilder.like(collectionRoot.get(type.getDeclaredSingularAttribute("summary", String.class)), q));
 			Predicate[] predicateORArray = new Predicate[predicateORList.size()];
@@ -64,8 +64,8 @@ public class CollectionDAO  {
 			predicateANDList.add(criteriaBuilder.or(predicateORArray));
 		} 
 
-		if (sortField != "") {
-			if (shouldSortAsc == false){
+		if (!sortField.equals("")) {
+			if (!shouldSortAsc){
 				criteriaQuery.orderBy(criteriaBuilder.desc(collectionRoot.get(type.getDeclaredSingularAttribute(sortField, String.class))));
 			} else {
 				criteriaQuery.orderBy(criteriaBuilder.asc(collectionRoot.get(type.getDeclaredSingularAttribute(sortField, String.class))));
@@ -184,7 +184,7 @@ public class CollectionDAO  {
 	 * @return    Populated Collection, or null if not found
 	 */
 	public Collection getCollection(Integer id) {
-		Collection result = null;
+		Collection result;
 		try {
 			result = em.find(Collection.class, id);
 		} catch (NoResultException e) {
@@ -199,7 +199,8 @@ public class CollectionDAO  {
 		em.persist(c);
 		//then get or create the role and assign the role to the user
 		Role owner = getOrCreateRole(Collection.ROLE_OWNER);
-		c.setUserRole(u, owner);
+		UserCollection uc = new UserCollection(u, c, owner);
+		c.getUsers().add(uc);
 		em.flush();
 		return c.getId();
 	}
@@ -212,7 +213,7 @@ public class CollectionDAO  {
 			if (hydratedCollection == null)
 				return null;
 
-			List<String> propertiesToCopy = new ArrayList<String>();
+			List<String> propertiesToCopy = new ArrayList<>();
 			propertiesToCopy.add("title");
 			propertiesToCopy.add("summary");
 			propertiesToCopy.add("rights");
@@ -310,7 +311,7 @@ public class CollectionDAO  {
 
 	@Transactional
 	public Role getOrCreateRole(String name) {
-		Role result = null;
+		Role result;
 		String query = "SELECT r FROM Role r " +
 				"WHERE r.name = :name";
 		try {
@@ -337,7 +338,7 @@ public class CollectionDAO  {
 	}
 
 	public UserCollection getUserCollection(int id) {
-		UserCollection result = null;
+		UserCollection result;
 		try {
 			result = em.find(UserCollection.class, id);
 		} catch (NoResultException e) {
@@ -354,13 +355,37 @@ public class CollectionDAO  {
 		return result;
 	}
 
-	public List<UserCollection> getUserCollectionsForUser(User u) {
+	private List<UserCollection> getUserCollectionsForUser(User u) {
 		String query = "select uc from UserCollection uc WHERE uc.user.id = :userId";
 		List<UserCollection> result = em.createQuery(query, UserCollection.class)
 				.setParameter("userId", u.getId())
 				.getResultList();
 		return result;
 	}
+
+	public boolean canUserEditItems(Collection c, User u) {
+		return (getUserCollection(c, u) != null);
+	}
+
+	public boolean isUserOwner(Collection c, User u) {
+		UserCollection uc = getUserCollection(c, u);
+		if (uc != null && uc.getRole().getName().equals(Collection.ROLE_OWNER))
+			return true;
+
+		return false;
+	}
+
+	private UserCollection getUserCollection(Collection collection, User user) {
+		List<UserCollection> ucs = getUserCollectionsForUser(user);
+		if (ucs != null) {
+			for(UserCollection uc : ucs) {
+				if (uc.getCollection().getId() == collection.getId())
+					return uc;
+			}
+		}
+		return null;
+	}
+
 
 	private List<Collection> assignRights(List<Collection> coll, User u) {
 		//if this is a call secured with a user call, attribute the collections list with the permissions for this user
@@ -372,7 +397,7 @@ public class CollectionDAO  {
 					log.debug(c.getTitle() + ":" + c.getId());
 					for (Collection innerc : coll) {
 						if (innerc.getId() == c.getId()) {
-							List<String> accessRights = new ArrayList<String>();
+							List<String> accessRights = new ArrayList<>();
 							accessRights.add(uc.getRole().getName());
 							innerc.setAccessRights(accessRights);
 							break;
