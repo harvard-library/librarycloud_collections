@@ -398,7 +398,11 @@ public class CollectionDAO  {
 					for (Collection innerc : coll) {
 						if (innerc.getId() == c.getId()) {
 							List<String> accessRights = new ArrayList<>();
-							accessRights.add(uc.getRole().getName());
+							if (uc.getRole() != null)
+								accessRights.add(uc.getRole().getName());
+							else
+								log.warn("user collection with user id of " + u.getId() + " and collection if of " +
+										c.getId() + " has no valid role.");
 							innerc.setAccessRights(accessRights);
 							break;
 						}

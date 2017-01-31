@@ -326,10 +326,13 @@ public class CollectionsAPI {
         return collectionDao.getUserCollections(c);
     }
 
-    @GET @Path("user/{search}")
+    @GET @Path("user")
     @JSONP(queryParam = "callback")
     @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
-    public List<User> getUsers(@PathParam("search") String search) {
+    public List<User> getUsers(@QueryParam("q") String search) {
+
+        if (search == null)
+            throw new NotFoundException();
 
         if (!isAuthenticated())
             throw new NotAuthorizedException("");
