@@ -328,21 +328,35 @@ public class CollectionDAO  {
 	}
 
 	@Transactional
+	public Role getRole(int id) {
+		Role result;
+		try {
+			result = em.find(Role.class, id);
+		} catch (NoResultException e) {
+			return null;
+		}
+		return result;
+	}
+
+	@Transactional
 	public void addOrUpdateUserCollection(Collection c, UserCollection uc) {
 		boolean isExistingUc = false;
 		List<UserCollection> ucs = getUserCollections(c);
-		for(UserCollection existingUc : ucs) {
-			if (existingUc.getUser().getId() == uc.getUser().getId()) {
-				existingUc.setRole(uc.getRole());
-				isExistingUc = true;
-				continue;
+		Role role = getRole(uc.getRole().getId());
+		if (role != null) {
+			for (UserCollection existingUc : ucs) {
+				if (existingUc.getUser().getId() == uc.getUser().getId()) {
+					existingUc.setRole(uc.getRole());
+					isExistingUc = true;
+					continue;
+				}
 			}
+			if (!isExistingUc) {
+				uc = new UserCollection(uc.getUser(), c, uc.getRole());
+				em.persist(uc);
+			}
+			em.flush();
 		}
-		if (!isExistingUc) {
-			uc.setCollection(c);
-			em.persist(uc);
-		}
-		em.flush();
 	}
 
 	@Transactional

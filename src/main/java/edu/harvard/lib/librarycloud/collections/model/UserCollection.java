@@ -61,9 +61,6 @@ public class UserCollection {
         this.user = user;
         this.collection = collection;
         this.role = role;
-
-        collection.getUsers().add(this);
-        //user.getCollections().add(this);
     }
 
     @EmbeddedId
@@ -77,8 +74,8 @@ public class UserCollection {
     @JoinColumn(name="collection_id", insertable=false, updatable=false)
     private Collection collection;
 
-    @OneToOne(cascade = CascadeType.DETACH)
-    @Column(nullable = false)
+    @ManyToOne(cascade = CascadeType.ALL)
+    @Column(name="role_id", nullable = false)
     private Role role;
 
     public User getUser() {

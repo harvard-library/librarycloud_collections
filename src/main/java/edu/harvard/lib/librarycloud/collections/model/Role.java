@@ -18,7 +18,7 @@ public class Role {
 
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private int id;
 
     @Column(unique = true, nullable = false)

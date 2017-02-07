@@ -61,7 +61,7 @@ public class Collection  {
 
 	public Collection() {}
 
-	@Id @GeneratedValue
+	@Id @GeneratedValue(strategy = GenerationType.SEQUENCE)
 	private int id;
 
     @ManyToMany(cascade = CascadeType.ALL)

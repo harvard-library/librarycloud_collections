@@ -9,7 +9,7 @@ import java.security.*;
 
 public class AuthUser {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private int id;
 
     @Column(nullable = false)
@@ -19,6 +19,7 @@ public class AuthUser {
     private String UID;
 
     @ManyToOne
+    @Column(name="user_id")
     private User user;
 
     public String getAuthSource() {

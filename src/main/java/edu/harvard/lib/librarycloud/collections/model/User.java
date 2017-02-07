@@ -6,13 +6,12 @@ import java.security.*;
 
 @Entity
 @Table(name = "user")
-
 public class User implements Principal {
 
 	public User() {}
 
 	@Id
-	@GeneratedValue
+	@GeneratedValue(strategy = GenerationType.SEQUENCE)
 	private int id;
 
 	@Column(nullable = false)
@@ -25,7 +24,8 @@ public class User implements Principal {
 
 	private String role;
 
-	@OneToOne
+	@ManyToOne
+	@Column(name="usertype_id")
 	private UserType userType;
 
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
