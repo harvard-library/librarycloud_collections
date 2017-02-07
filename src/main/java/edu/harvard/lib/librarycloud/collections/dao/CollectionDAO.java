@@ -295,7 +295,7 @@ public class CollectionDAO  {
 	gets Users from the database based on a search string.  Note that only some user characteristics are returned.
 	 */
 	public List<User> getUsers(String search) {
-		String query = "select new User(u.id, u.email, u.name) from User u WHERE u.email like :search OR u.name like :search";
+		String query = "select u from User u WHERE u.email like :search OR u.name like :search";
 		List<User> result = em.createQuery(query, User.class)
 				.setParameter("search", "%" + search + "%")
 				.getResultList();
@@ -329,22 +329,33 @@ public class CollectionDAO  {
 
 	@Transactional
 	public void addOrUpdateUserCollection(Collection c, UserCollection uc) {
-
+		boolean isExistingUc = false;
+		List<UserCollection> ucs = getUserCollections(c);
+		for(UserCollection existingUc : ucs) {
+			if (existingUc.getUser().getId() == uc.getUser().getId()) {
+				existingUc.setRole(uc.getRole());
+				isExistingUc = true;
+				continue;
+			}
+		}
+		if (!isExistingUc) {
+			uc.setCollection(c);
+			em.persist(uc);
+		}
+		em.flush();
 	}
 
 	@Transactional
 	public void deleteUserCollection(UserCollection uc) {
-		em.remove(uc);
-	}
+		String query = "delete from UserCollection uc WHERE uc.collection.id = :collectionId and uc.user.id = :userId";
 
-	public UserCollection getUserCollection(int id) {
-		UserCollection result;
-		try {
-			result = em.find(UserCollection.class, id);
-		} catch (NoResultException e) {
-			return null;
-		}
-		return result;
+		//TODO: this approach was taken because the em.remove approach did not work.
+		// This is likely to do with the incomplete implementation of the UserCollection
+		// persistence class, which should be revisited as time and budget allows.
+		em.createQuery(query, UserCollection.class)
+				.setParameter("collectionId", uc.getCollection().getId())
+				.setParameter("userId", uc.getUser().getId())
+				.executeUpdate();
 	}
 
 	public List<UserCollection> getUserCollections(Collection c) {
@@ -397,13 +408,8 @@ public class CollectionDAO  {
 					log.debug(c.getTitle() + ":" + c.getId());
 					for (Collection innerc : coll) {
 						if (innerc.getId() == c.getId()) {
-							List<String> accessRights = new ArrayList<>();
-							if (uc.getRole() != null)
-								accessRights.add(uc.getRole().getName());
-							else
-								log.warn("user collection with user id of " + u.getId() + " and collection if of " +
-										c.getId() + " has no valid role.");
-							innerc.setAccessRights(accessRights);
+							uc.setCollection(null);
+							innerc.setAccessRights(uc);
 							break;
 						}
 					}

@@ -11,12 +11,6 @@ public class User implements Principal {
 
 	public User() {}
 
-	public User(int id, String email, String name) {
-		this.id = id;
-		this.email = email;
-		this.name = name;
-	}
-
 	@Id
 	@GeneratedValue
 	private int id;
@@ -35,9 +29,11 @@ public class User implements Principal {
 	private UserType userType;
 
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-	private List<UserCollection> collections = new ArrayList<UserCollection>();
+	private List<UserCollection> collections;
 
 	//getters/setters
+
+	public void setId(int id) { this.id = id; }
 
 	public int getId() {
 		return id;

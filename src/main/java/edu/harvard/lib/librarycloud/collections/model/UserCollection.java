@@ -77,7 +77,7 @@ public class UserCollection {
     @JoinColumn(name="collection_id", insertable=false, updatable=false)
     private Collection collection;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.DETACH)
     @Column(nullable = false)
     private Role role;
 

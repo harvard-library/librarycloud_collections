@@ -85,7 +85,7 @@ public class Collection  {
 	private String rights;
 
 	@Transient
-	private List<String> accessRights;
+	private UserCollection accessRights;
 
 	@XmlElement(namespace="http://purl.org/dc/elements/1.1/", name="identifier")
 	public int getId() {
@@ -174,11 +174,11 @@ public class Collection  {
 	}
 
 	@XmlElement(namespace="http://purl.org/dc/terms/", name="accessRights")
-	public List<String> getAccessRights() {
+	public UserCollection getAccessRights() {
 		return accessRights;
 	}
 
-	public void setAccessRights(List<String> accessRights) {
+	public void setAccessRights(UserCollection accessRights) {
 		this.accessRights = accessRights;
 	}
 

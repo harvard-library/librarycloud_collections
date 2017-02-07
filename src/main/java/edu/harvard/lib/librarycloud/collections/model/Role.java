@@ -9,20 +9,30 @@ import java.security.*;
 
 public class Role {
 
-    public Role() {}
+    public Role() {
+    }
 
     public Role(String name) {
         setName(name);
     }
 
+
     @Id
     @GeneratedValue
     private int id;
 
-    @Column(unique=true, nullable = false)
+    @Column(unique = true, nullable = false)
     private String name;
 
     private String description;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;

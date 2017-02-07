@@ -271,7 +271,7 @@ public class CollectionsAPI {
     */
     @POST @Path("collections/{id}/user")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response addOrUpdateUserCollection(@PathParam("id") Integer id, UserCollection user){
+    public Response addOrUpdateUserCollection(@PathParam("id") Integer id, UserCollection uc){
         Collection c = collectionDao.getCollection(id);
 
         if (c == null) {
@@ -281,7 +281,7 @@ public class CollectionsAPI {
             return Response.status(Status.UNAUTHORIZED).build();
         }
 
-        collectionDao.addOrUpdateUserCollection(c, user);
+        collectionDao.addOrUpdateUserCollection(c, uc);
 
         return Response.status(Status.NOT_FOUND).build();
     }
@@ -293,16 +293,22 @@ public class CollectionsAPI {
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response deleteUserCollection(@PathParam("id") Integer id, @PathParam("user_id") Integer userId) {
         Collection c = collectionDao.getCollection(id);
-        UserCollection uc = collectionDao.getUserCollection(userId);
 
-        if (c == null || uc == null) {
+
+        if (c == null) {
             return Response.status(Status.NOT_FOUND).build();
         }
         if (!this.isOwner(c)) {
             return Response.status(Status.UNAUTHORIZED).build();
         }
 
-        collectionDao.deleteUserCollection(uc);
+        List<UserCollection> ucs = collectionDao.getUserCollections(c);
+        if (ucs != null) {
+            for (UserCollection uc : ucs) {
+                if (uc.getUser().getId() == userId)
+                    collectionDao.deleteUserCollection(uc);
+            }
+        }
 
         return Response.status(Status.NO_CONTENT).build();
     }
@@ -326,7 +332,7 @@ public class CollectionsAPI {
         return collectionDao.getUserCollections(c);
     }
 
-    @GET @Path("user")
+    @GET @Path("users")
     @JSONP(queryParam = "callback")
     @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
     public List<User> getUsers(@QueryParam("q") String search) {
@@ -340,7 +346,7 @@ public class CollectionsAPI {
         return collectionDao.getUsers(search);
     }
 
-    @GET @Path("role")
+    @GET @Path("roles")
     @JSONP(queryParam = "callback")
     @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
     public List<Role> getRoles() {
