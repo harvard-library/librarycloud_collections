@@ -153,7 +153,7 @@ public class CollectionsAPI {
         }      
         
         Integer id = collectionDao.createCollection(collection, user);
-        UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
+        UriBuilder uriBuilder = uriInfo.getRequestUriBuilder();
         URI uri = uriBuilder.path(id.toString()).build();
         return Response.created(uri).build();        
     }
