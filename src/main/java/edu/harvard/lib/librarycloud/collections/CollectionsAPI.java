@@ -281,9 +281,10 @@ public class CollectionsAPI {
             return Response.status(Status.UNAUTHORIZED).build();
         }
 
-        collectionDao.addOrUpdateUserCollection(c, uc);
+        boolean result = collectionDao.addOrUpdateUserCollection(c, uc);
 
-        return Response.status(Status.NOT_FOUND).build();
+        /* Return 204 if successful, 404 if not found. */
+        return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();
     }
 
     /*

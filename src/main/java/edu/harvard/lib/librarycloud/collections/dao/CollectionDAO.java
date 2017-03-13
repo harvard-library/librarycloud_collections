@@ -9,6 +9,7 @@ import javax.persistence.*;
 import javax.persistence.criteria.*;
 import javax.persistence.metamodel.*;
 
+import com.amazonaws.util.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.transaction.annotation.Transactional;
@@ -249,11 +250,12 @@ public class CollectionDAO  {
 	public boolean addToCollection(Integer id, Item item) {
 		Collection c;
 		c = em.find(Collection.class, id);
-		if (c == null) {
+		String externalItemId = item.getItemId();
+		if (c == null || StringUtils.isNullOrEmpty(externalItemId.replaceAll("\\s", ""))) {
 			return false;
 		}
 		List<Item> persistentItems = em.createQuery("SELECT i FROM Item i WHERE i.itemId = :external_item_id")
-								 		.setParameter("external_item_id", item.getItemId())
+								 		.setParameter("external_item_id", externalItemId)
 								 		.getResultList();
 		/* Check whether a matching item already exists. We should never have more than 1 */
 		if (persistentItems != null && persistentItems.size() == 1) {
@@ -339,7 +341,8 @@ public class CollectionDAO  {
 	}
 
 	@Transactional
-	public void addOrUpdateUserCollection(Collection c, UserCollection uc) {
+	public boolean addOrUpdateUserCollection(Collection c, UserCollection uc) {
+		boolean ucFound = false;
 		boolean isExistingUc = false;
 		List<UserCollection> ucs = getUserCollections(c);
 		Role role = getRole(uc.getRole().getId());
@@ -347,16 +350,19 @@ public class CollectionDAO  {
 			for (UserCollection existingUc : ucs) {
 				if (existingUc.getUser().getId() == uc.getUser().getId()) {
 					existingUc.setRole(uc.getRole());
+					ucFound = true;
 					isExistingUc = true;
 					continue;
 				}
 			}
 			if (!isExistingUc) {
+				ucFound = true;
 				uc = new UserCollection(uc.getUser(), c, uc.getRole());
 				em.persist(uc);
 			}
 			em.flush();
 		}
+		return ucFound;
 	}
 
 	@Transactional

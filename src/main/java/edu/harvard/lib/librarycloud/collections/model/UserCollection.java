@@ -74,7 +74,7 @@ public class UserCollection {
     @JoinColumn(name="collection_id", insertable=false, updatable=false)
     private Collection collection;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @Column(name="role_id", nullable = false)
     private Role role;
 
