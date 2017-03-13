@@ -1,11 +1,13 @@
 package edu.harvard.lib.librarycloud.collections.model;
 
-import java.util.List;
+import java.util.*;
 import javax.persistence.*;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import edu.harvard.lib.librarycloud.collections.dao.CollectionDAO;
+import org.apache.log4j.Logger;
 import org.eclipse.persistence.oxm.annotations.XmlInverseReference;
 
 /* Implements a subset of the Dublin Core Collections Application Profile (DCCAP)
@@ -51,18 +53,23 @@ import org.eclipse.persistence.oxm.annotations.XmlInverseReference;
 @Table(name="collection")
 @XmlRootElement(namespace = "http://api.lib.harvard.edu/v2/collection/", name="collection")
 public class Collection  {
+	@Transient
+	Logger log = Logger.getLogger(Collection.class);
+
+	public static final String ROLE_OWNER = "owner";
+	public static final String ROLE_EDITOR = "editor";
 
 	public Collection() {}
 
-	@Id @GeneratedValue
+	@Id @GeneratedValue(strategy = GenerationType.SEQUENCE)
 	private int id;
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name="collection_item")
     private List<Item> items;
 
-    @ManyToOne
-    private User user;
+	@OneToMany(mappedBy = "collection", cascade = CascadeType.ALL)
+    private List<UserCollection> users = new ArrayList<>();
 
 	@Column(nullable = false)
 	private String title;
@@ -77,8 +84,8 @@ public class Collection  {
 	@Lob
 	private String rights;
 
-	@Lob
-	private String accessRights;
+	@Transient
+	private UserCollection accessRights;
 
 	@XmlElement(namespace="http://purl.org/dc/elements/1.1/", name="identifier")
 	public int getId() {
@@ -94,15 +101,12 @@ public class Collection  {
 		this.items = items;
 	}
 
-	@XmlTransient
-	public User getUser()
-	{
-		return user;
+	public List<UserCollection> getUsers() {
+		return users;
 	}
 
-	public void setUser(User user)
-	{
-		this.user = user;
+	public void setUsers(List<UserCollection> users) {
+		this.users = users;
 	}
 
 	public void addItem(Item item) {
@@ -173,12 +177,33 @@ public class Collection  {
 	}
 
 	@XmlElement(namespace="http://purl.org/dc/terms/", name="accessRights")
-	public String getAccessRights() {
+	public UserCollection getAccessRights() {
 		return accessRights;
 	}
 
-	public void setAccessRights(String accessRights) {
+	public void setAccessRights(UserCollection accessRights) {
 		this.accessRights = accessRights;
+	}
+
+	/* HELPER METHODS */
+	public void removeUser(UserCollection uc) {
+		if (uc != null) {
+			users.remove(uc);
+		}
+	}
+
+	private UserCollection getUserCollection(User u) {
+		if (u != null) {
+			List<UserCollection> ucs = this.getUsers();
+			if (ucs != null) {
+				for (UserCollection uc : ucs) {
+					if (uc.getUser().getId() == u.getId()) {
+						return uc;
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 }

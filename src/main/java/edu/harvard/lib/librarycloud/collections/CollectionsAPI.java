@@ -24,7 +24,7 @@ import edu.harvard.lib.librarycloud.collections.model.*;
 @Path("/v2")
 public class CollectionsAPI {
 
-    Logger log = Logger.getLogger(CollectionsAPI.class); 
+    private Logger log = Logger.getLogger(CollectionsAPI.class);
 
     @Context 
     UriInfo uriInfo;
@@ -53,20 +53,23 @@ public class CollectionsAPI {
             @QueryParam("sort.asc") String sortAsc, @QueryParam("sort.desc") String sortDesc,
             @QueryParam("start") Integer start
             ) {
+
+        User user = (User)securityContext.getUserPrincipal();
+
         List<Collection> collections;
         if (contains != null) {
-            collections = collectionDao.getCollectionsForItem(contains);
+            collections = collectionDao.getCollectionsForItem(user, contains);
         } else {
             //handle sorting parameters
             String sortField = "";
             boolean shouldSortAsc = true;
-            if(sort != null && sort != ""){
+            if(sort != null && !sort.equals("")){
                 sortField = sort;
                 shouldSortAsc = true;
-            } else if(sortAsc != null && sortAsc != ""){
+            } else if(sortAsc != null && !sortAsc.equals("")){
                 sortField = sortAsc;
                 shouldSortAsc = true;
-            } else if(sortDesc != null && sortDesc != ""){
+            } else if(sortDesc != null && !sortDesc.equals("")){
                 sortField = sortDesc;
                 shouldSortAsc = false;
             }
@@ -83,7 +86,7 @@ public class CollectionsAPI {
             //should probably be implemented.
             sortField = sortField.replace("abstract", "summary"); 
             try{
-                collections = collectionDao.getCollections(q, title, summary, false, limit, sortField, shouldSortAsc, start);
+                collections = collectionDao.getCollections(user, q, title, summary, false, limit, sortField, shouldSortAsc, start);
             } catch (Exception e){
                 throw new BadRequestException();
             }
@@ -115,7 +118,7 @@ public class CollectionsAPI {
     @JSONP(queryParam = "callback")
     @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
     public List<Item> getItems(@PathParam("external_ids") String external_ids) {
-        List<String> external_id_list = new ArrayList<String>(Arrays.asList(external_ids.split(",")));
+        List<String> external_id_list = new ArrayList<>(Arrays.asList(external_ids.split(",")));
         if (external_id_list.isEmpty()) {
             throw new NotFoundException();
         }
@@ -149,14 +152,14 @@ public class CollectionsAPI {
             return Response.status(Status.UNAUTHORIZED).build();
         }      
         
-        collection.setUser(user);
-
-
-        Integer id = collectionDao.createCollection(collection);
+        Integer id = collectionDao.createCollection(collection, user);
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
         URI uri = uriBuilder.path(id.toString()).build();
         return Response.created(uri).build();        
     }
+
+
+
 
     /**
      * Update a collection
@@ -164,7 +167,7 @@ public class CollectionsAPI {
     @PUT @Path("collections/{id}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response updateCollection(@PathParam("id") Integer id, Collection collection) {
-        if (!this.checkUserAuthorization(id)) {
+        if (!this.canEditItems(id)) {
             return Response.status(Status.UNAUTHORIZED).build();
         }
     	Collection result = collectionDao.updateCollection(id,collection);
@@ -191,7 +194,7 @@ public class CollectionsAPI {
         if (c == null) {
             return Response.status(Status.NOT_FOUND).build();
         }
-        if (!this.checkUserAuthorization(c)) {
+        if (!this.isOwner(c)) {
             return Response.status(Status.UNAUTHORIZED).build();
         }
 
@@ -218,7 +221,7 @@ public class CollectionsAPI {
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response addItems(@PathParam("id") Integer id, List<Item> items) {
 
-        if (!this.checkUserAuthorization(id)) {
+        if (!this.canEditItems(id)) {
             return Response.status(Status.UNAUTHORIZED).build();
         }
 
@@ -245,7 +248,7 @@ public class CollectionsAPI {
     public Response removeItem(@PathParam("id") Integer id, 
                                @PathParam("itemid") String external_item_id) {
 
-        if (!this.checkUserAuthorization(id)) {
+        if (!this.canEditItems(id)) {
             return Response.status(Status.UNAUTHORIZED).build();
         }
 
@@ -263,23 +266,136 @@ public class CollectionsAPI {
         return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();        
     }
 
+    /*
+   Add or update a user to a collection
+    */
+    @POST @Path("collections/{id}/user")
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response addOrUpdateUserCollection(@PathParam("id") Integer id, UserCollection uc){
+        Collection c = collectionDao.getCollection(id);
+
+        if (c == null) {
+            return Response.status(Status.NOT_FOUND).build();
+        }
+        if (!this.isOwner(c)) {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+
+        boolean result = collectionDao.addOrUpdateUserCollection(c, uc);
+
+        /* Return 204 if successful, 404 if not found. */
+        return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();
+    }
+
+    /*
+    Delete a user for a collection
+     */
+    @DELETE @Path("collections/{id}/user/{user_id}")
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response deleteUserCollection(@PathParam("id") Integer id, @PathParam("user_id") Integer userId) {
+        Collection c = collectionDao.getCollection(id);
+
+
+        if (c == null) {
+            return Response.status(Status.NOT_FOUND).build();
+        }
+        if (!this.isOwner(c)) {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+
+        List<UserCollection> ucs = collectionDao.getUserCollections(c);
+        if (ucs != null) {
+            for (UserCollection uc : ucs) {
+                if (uc.getUser().getId() == userId)
+                    collectionDao.deleteUserCollection(uc);
+            }
+        }
+
+        return Response.status(Status.NO_CONTENT).build();
+    }
+
+    /*
+    Get the users for a collection
+     */
+    @GET @Path("collections/{id}/user")
+    @JSONP(queryParam = "callback")
+    @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
+    public  List<UserCollection> getUserCollections(@PathParam("id") Integer id) {
+
+        Collection c = collectionDao.getCollection(id);
+
+        if (c == null) {
+            throw new NotFoundException();
+        }
+        if (!this.isOwner(c))
+            throw new NotAuthorizedException("");
+
+        return collectionDao.getUserCollections(c);
+    }
+
+    @GET @Path("users")
+    @JSONP(queryParam = "callback")
+    @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
+    public List<User> getUsers(@QueryParam("q") String search) {
+
+        if (search == null)
+            throw new NotFoundException();
+
+        if (!isAuthenticated())
+            throw new NotAuthorizedException("");
+
+        return collectionDao.getUsers(search);
+    }
+
+    @GET @Path("roles")
+    @JSONP(queryParam = "callback")
+    @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
+    public List<Role> getRoles() {
+
+        if (!isAuthenticated())
+            throw new NotAuthorizedException("");
+
+        return collectionDao.getRoles();
+    }
+
     /**
      * Confirm a users access for modifying data.
      */
 
-    private boolean checkUserAuthorization(Integer collectionId) {
-        Collection c = collectionDao.getCollection(collectionId);
-        return (c == null ? true : checkUserAuthorization(c));
-    }
-
-    private boolean checkUserAuthorization(Collection c) {
-        if (c == null) {
-            return true;
-        }
+    private boolean isOwner(Collection c) {
+        if (c == null)
+            return false;
 
         User user = (User) securityContext.getUserPrincipal();
+        if (user != null) {
+            if (isSystemAdmin())
+                return true;
 
-        return user != null && (user.getId() == c.getUser().getId()
-            || securityContext.isUserInRole("admin"));
+            return collectionDao.isUserOwner(c, user);
+        }
+        return false;
+    }
+
+    private boolean canEditItems(Integer collectionId) {
+        Collection c = collectionDao.getCollection(collectionId);
+        if (c == null)
+            return false;
+
+        User user = (User) securityContext.getUserPrincipal();
+        if (user != null) {
+            if (isSystemAdmin())
+                return true;
+
+            return collectionDao.canUserEditItems(c, user);
+        }
+        return false;
+    }
+
+    private boolean isSystemAdmin() {
+        return securityContext.isUserInRole("admin");
+    }
+
+    private boolean isAuthenticated(){
+        return (securityContext.getUserPrincipal() != null);
     }
 }

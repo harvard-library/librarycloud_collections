@@ -9,6 +9,7 @@ import javax.persistence.*;
 import javax.persistence.criteria.*;
 import javax.persistence.metamodel.*;
 
+import com.amazonaws.util.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,14 +17,14 @@ import org.springframework.transaction.annotation.Transactional;
 import edu.harvard.lib.librarycloud.collections.model.*;
 
 public class CollectionDAO  {
-    Logger log = Logger.getLogger(CollectionDAO.class); 
+    private Logger log = Logger.getLogger(CollectionDAO.class);
 
     @PersistenceContext
     private EntityManager em;
 
 	public CollectionDAO() {}
 
-	public List<Collection> getCollections(String q, String title, 
+	public List<Collection> getCollections(User u, String q, String title,
 			String summary, boolean exactMatch, Integer limit,
 			String sortField, boolean shouldSortAsc, Integer start
 			) {
@@ -31,7 +32,7 @@ public class CollectionDAO  {
 		CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
 		CriteriaQuery<Collection> criteriaQuery = criteriaBuilder.createQuery(Collection.class);
 
-		List<Predicate> predicateANDList = new LinkedList<Predicate>();
+		List<Predicate> predicateANDList = new LinkedList<>();
 		EntityType<Collection> type = em.getMetamodel().entity(Collection.class);
 
 		Root<Collection> collectionRoot = criteriaQuery.from(Collection.class);
@@ -56,7 +57,7 @@ public class CollectionDAO  {
 
 		// "q" is never an exact match search
 		if (q != null && q.length() > 2) {
-			List<Predicate> predicateORList = new LinkedList<Predicate>();
+			List<Predicate> predicateORList = new LinkedList<>();
 			predicateORList.add(criteriaBuilder.like(collectionRoot.get(type.getDeclaredSingularAttribute("title", String.class)), q));
 			predicateORList.add(criteriaBuilder.like(collectionRoot.get(type.getDeclaredSingularAttribute("summary", String.class)), q));
 			Predicate[] predicateORArray = new Predicate[predicateORList.size()];
@@ -64,8 +65,8 @@ public class CollectionDAO  {
 			predicateANDList.add(criteriaBuilder.or(predicateORArray));
 		} 
 
-		if (sortField != "") {
-			if (shouldSortAsc == false){
+		if (!sortField.equals("")) {
+			if (!shouldSortAsc){
 				criteriaQuery.orderBy(criteriaBuilder.desc(collectionRoot.get(type.getDeclaredSingularAttribute(sortField, String.class))));
 			} else {
 				criteriaQuery.orderBy(criteriaBuilder.asc(collectionRoot.get(type.getDeclaredSingularAttribute(sortField, String.class))));
@@ -85,6 +86,9 @@ public class CollectionDAO  {
 		query.setFirstResult(start);
 
 		result = query.getResultList();
+
+		result = assignRights(result, u);
+
 		return result;
 	}
 
@@ -93,12 +97,15 @@ public class CollectionDAO  {
 	 * @param  external_item_id ID of the item to look for
 	 * @return                  List of Collections containing the item
 	 */
-	public List<Collection> getCollectionsForItem(String external_item_id) {
+	public List<Collection> getCollectionsForItem(User u, String external_item_id) {
 		String query = "SELECT DISTINCT c FROM Collection c INNER JOIN c.items i " +
 					   "WHERE i.itemId = :external_item_id";
 		List<Collection> result = em.createQuery(query, Collection.class)
 									 .setParameter("external_item_id", external_item_id)
 									 .getResultList();
+
+		result = assignRights(result, u);
+
 		return result;
 	}
 
@@ -108,16 +115,17 @@ public class CollectionDAO  {
 	 * @return                  User for that token.
 	 */
 
-	public User getUserForAPIToken(String token)
-	{
+	public User getUserForAPIToken(String token) {
 		String query = "SELECT u FROM User u " +
-					   "WHERE u.token = :token";
-	try{
-		User result = em.createQuery(query, User.class)
-									 .setParameter("token", token).setMaxResults(1)
-							 .getSingleResult();
-		return result;
-	} catch (NoResultException e) { return null;}
+				"WHERE u.token = :token";
+		try {
+			User result = em.createQuery(query, User.class)
+					.setParameter("token", token).setMaxResults(1)
+					.getSingleResult();
+			return result;
+		} catch (NoResultException e) {
+			return null;
+		}
 	}
 
 
@@ -177,7 +185,7 @@ public class CollectionDAO  {
 	 * @return    Populated Collection, or null if not found
 	 */
 	public Collection getCollection(Integer id) {
-		Collection result = null;
+		Collection result;
 		try {
 			result = em.find(Collection.class, id);
 		} catch (NoResultException e) {
@@ -187,8 +195,13 @@ public class CollectionDAO  {
 	}
 
     @Transactional
-	public Integer createCollection(Collection c) {
+	public Integer createCollection(Collection c, User u) {
+		//first save the collection to generate an Id
 		em.persist(c);
+		//then get or create the role and assign the role to the user
+		Role owner = getOrCreateRole(Collection.ROLE_OWNER);
+		UserCollection uc = new UserCollection(u, c, owner);
+		c.getUsers().add(uc);
 		em.flush();
 		return c.getId();
 	}
@@ -201,7 +214,7 @@ public class CollectionDAO  {
 			if (hydratedCollection == null)
 				return null;
 
-			List<String> propertiesToCopy = new ArrayList<String>();
+			List<String> propertiesToCopy = new ArrayList<>();
 			propertiesToCopy.add("title");
 			propertiesToCopy.add("summary");
 			propertiesToCopy.add("rights");
@@ -237,11 +250,12 @@ public class CollectionDAO  {
 	public boolean addToCollection(Integer id, Item item) {
 		Collection c;
 		c = em.find(Collection.class, id);
-		if (c == null) {
+		String externalItemId = item.getItemId();
+		if (c == null || StringUtils.isNullOrEmpty(externalItemId.replaceAll("\\s", ""))) {
 			return false;
 		}
 		List<Item> persistentItems = em.createQuery("SELECT i FROM Item i WHERE i.itemId = :external_item_id")
-								 		.setParameter("external_item_id", item.getItemId())
+								 		.setParameter("external_item_id", externalItemId)
 								 		.getResultList();
 		/* Check whether a matching item already exists. We should never have more than 1 */
 		if (persistentItems != null && persistentItems.size() == 1) {
@@ -277,6 +291,152 @@ public class CollectionDAO  {
 		em.persist(c);
 		em.flush();
 		return true;
+	}
+
+	/*
+	gets Users from the database based on a search string.  Note that only some user characteristics are returned.
+	 */
+	public List<User> getUsers(String search) {
+		String query = "select u from User u WHERE u.email like :search OR u.name like :search";
+		List<User> result = em.createQuery(query, User.class)
+				.setParameter("search", "%" + search + "%")
+				.getResultList();
+		return result;
+	}
+
+	public List<Role> getRoles() {
+		String query = "select r from Role r";
+		List<Role> result = em.createQuery(query, Role.class)
+				.getResultList();
+		return result;
+	}
+
+	@Transactional
+	public Role getOrCreateRole(String name) {
+		Role result;
+		String query = "SELECT r FROM Role r " +
+				"WHERE r.name = :name";
+		try {
+			 result = em.createQuery(query, Role.class)
+					.setParameter("name", name).setMaxResults(1)
+					.getSingleResult();
+
+		} catch (NoResultException e) {
+			result = new Role(name);
+			em.persist(result);
+			em.flush();
+		}
+		return result;
+	}
+
+	@Transactional
+	public Role getRole(int id) {
+		Role result;
+		try {
+			result = em.find(Role.class, id);
+		} catch (NoResultException e) {
+			return null;
+		}
+		return result;
+	}
+
+	@Transactional
+	public boolean addOrUpdateUserCollection(Collection c, UserCollection uc) {
+		boolean ucFound = false;
+		boolean isExistingUc = false;
+		List<UserCollection> ucs = getUserCollections(c);
+		Role role = getRole(uc.getRole().getId());
+		if (role != null) {
+			for (UserCollection existingUc : ucs) {
+				if (existingUc.getUser().getId() == uc.getUser().getId()) {
+					existingUc.setRole(uc.getRole());
+					ucFound = true;
+					isExistingUc = true;
+					continue;
+				}
+			}
+			if (!isExistingUc) {
+				ucFound = true;
+				uc = new UserCollection(uc.getUser(), c, uc.getRole());
+				em.persist(uc);
+			}
+			em.flush();
+		}
+		return ucFound;
+	}
+
+	@Transactional
+	public void deleteUserCollection(UserCollection uc) {
+		String query = "delete from UserCollection uc WHERE uc.collection.id = :collectionId and uc.user.id = :userId";
+
+		//TODO: this approach was taken because the em.remove approach did not work.
+		// This is likely to do with the incomplete implementation of the UserCollection
+		// persistence class, which should be revisited as time and budget allows.
+		em.createQuery(query, UserCollection.class)
+				.setParameter("collectionId", uc.getCollection().getId())
+				.setParameter("userId", uc.getUser().getId())
+				.executeUpdate();
+	}
+
+	public List<UserCollection> getUserCollections(Collection c) {
+		String query = "select uc from UserCollection uc WHERE uc.collection.id = :collectionId";
+		List<UserCollection> result = em.createQuery(query, UserCollection.class)
+				.setParameter("collectionId", c.getId())
+				.getResultList();
+		return result;
+	}
+
+	private List<UserCollection> getUserCollectionsForUser(User u) {
+		String query = "select uc from UserCollection uc WHERE uc.user.id = :userId";
+		List<UserCollection> result = em.createQuery(query, UserCollection.class)
+				.setParameter("userId", u.getId())
+				.getResultList();
+		return result;
+	}
+
+	public boolean canUserEditItems(Collection c, User u) {
+		return (getUserCollection(c, u) != null);
+	}
+
+	public boolean isUserOwner(Collection c, User u) {
+		UserCollection uc = getUserCollection(c, u);
+		if (uc != null && uc.getRole().getName().equals(Collection.ROLE_OWNER))
+			return true;
+
+		return false;
+	}
+
+	private UserCollection getUserCollection(Collection collection, User user) {
+		List<UserCollection> ucs = getUserCollectionsForUser(user);
+		if (ucs != null) {
+			for(UserCollection uc : ucs) {
+				if (uc.getCollection().getId() == collection.getId())
+					return uc;
+			}
+		}
+		return null;
+	}
+
+
+	private List<Collection> assignRights(List<Collection> coll, User u) {
+		//if this is a call secured with a user call, attribute the collections list with the permissions for this user
+		if (u != null) {
+			List<UserCollection> ucs = getUserCollectionsForUser(u);
+			if (ucs != null){
+				for(UserCollection uc : ucs) {
+					Collection c = uc.getCollection();
+					log.debug(c.getTitle() + ":" + c.getId());
+					for (Collection innerc : coll) {
+						if (innerc.getId() == c.getId()) {
+							uc.setCollection(null);
+							innerc.setAccessRights(uc);
+							break;
+						}
+					}
+				}
+			}
+		}
+		return coll;
 	}
 
 }
