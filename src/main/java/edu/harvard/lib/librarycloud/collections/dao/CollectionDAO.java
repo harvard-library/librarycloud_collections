@@ -179,6 +179,21 @@ public class CollectionDAO  {
 		return result;
 	}
 
+  /**
+   * Get an individual item by ID
+   * @param  id Internal ID of the Item
+   * @return    Populated Item, or null if not found
+  */
+  public Item getItemByInternalId(Integer id) {
+    Item result;
+    try {
+      result = em.find(Item.class, id);
+    } catch (NoResultException e) {
+      return null;
+    }
+      return result;
+  }
+
 	/**
 	 * Get an individual collection by ID
 	 * @param  id Internal ID of the collection
@@ -242,6 +257,20 @@ public class CollectionDAO  {
 		if (c == null) {
 			return false;
 		}
+    List<Item> takeus = new ArrayList<Item>();
+    List<Item> items = c.getItems();
+    for (Item i : items) {
+      String query = "SELECT DISTINCT c FROM Collection c INNER JOIN c.items i WHERE i.id = :id";
+      List<Collection> result = em.createQuery(query, Collection.class)
+          .setParameter("id", i.getId())
+          .getResultList();
+
+       if (result.size() == 1) {
+         takeus.add(i);
+       }
+    }
+    c.setItems(takeus);
+
 		em.remove(c);
 		return true;
 	}
