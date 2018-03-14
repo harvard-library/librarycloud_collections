@@ -11,7 +11,7 @@
 
     <properties>
         <jersey.version>2.13</jersey.version>
-        <spring.version>3.2.11.RELEASE</spring.version>
+        <spring.version>4.3.14.RELEASE</spring.version>
         <openjpa.version>2.3.0</openjpa.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -67,6 +67,34 @@
               <artifactId>maven-surefire-plugin</artifactId>
               <version>2.21.0</version>
             </plugin>
+            <plugin>
+              <groupId>org.flywaydb</groupId>
+              <artifactId>flyway-maven-plugin</artifactId>
+              <version>5.0.7</version>
+              <configuration>
+                <url>${db_url}</url>
+                <user>${db_user}</user>
+                <password>${db_password}</password>
+              </configuration>
+            </plugin>
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>properties-maven-plugin</artifactId>
+              <version>1.0.0</version>
+              <executions>
+                <execution>
+                  <phase>initialize</phase>
+                  <goals>
+                    <goal>read-project-properties</goal>
+                  </goals>
+                  <configuration>
+                    <files>
+                      <file>src/test/resources/test.properties</file>
+                    </files>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -78,9 +106,7 @@
                 <version>${jersey.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-
             </dependency>
-
         </dependencies>
     </dependencyManagement>
 
@@ -153,7 +179,11 @@
             <version>${spring.version}</version>
         </dependency>
 
-
+        <dependency>
+          <groupId>org.flywaydb</groupId>
+          <artifactId>flyway-core</artifactId>
+          <version>5.0.7</version>
+        </dependency>
 
         <!-- Servlets -->
 
@@ -218,7 +248,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <version>4.12</version>
         </dependency>
 
     </dependencies>
