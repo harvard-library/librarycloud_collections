@@ -1,32 +1,31 @@
  <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:tx="http://www.springframework.org/schema/tx"	
-	xsi:schemaLocation="
-		http://www.springframework.org/schema/beans	
-		http://www.springframework.org/schema/beans/spring-beans.xsd
-	 
-		http://www.springframework.org/schema/tx 
-		http://www.springframework.org/schema/tx/spring-tx.xsd
-		 
-		http://www.springframework.org/schema/context
-		http://www.springframework.org/schema/context/spring-context.xsd">
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:context="http://www.springframework.org/schema/context"
+  xmlns:tx="http://www.springframework.org/schema/tx"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
 
-	<context:component-scan base-package="edu.harvard.lib.librarycloud.collections.dao.*" />
+    http://www.springframework.org/schema/tx
+    http://www.springframework.org/schema/tx/spring-tx.xsd
 
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context.xsd">
+
+  <context:component-scan base-package="edu.harvard.lib.librarycloud.collections.dao.*" />
 
     <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
         <property name="entityManagerFactory" ref="entityManagerFactory" />
     </bean>
-	<tx:annotation-driven transaction-manager="transactionManager" />
+  <tx:annotation-driven transaction-manager="transactionManager" />
 
     <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
-        <property name="persistenceUnitName" value="collections-pu" />        
-        <!-- <property name="dataSource" ref="restDemoDS" /> -->
+        <property name="persistenceUnitName" value="collections-pu" />
+        <!-- <property name="dataSource" ref="dataSource" /> -->
         <property name="packagesToScan" value="edu.harvard.lib.librarycloud.collections.model.*" />
-   </bean>     
+   </bean>
 
- 	<bean id="collectionDao" class="edu.harvard.lib.librarycloud.collections.dao.CollectionDAO"/>
- 	<bean id="CollectionsWorkflow" class="edu.harvard.lib.librarycloud.collections.CollectionsWorkflow"/>
+  <bean id="collectionDao" class="edu.harvard.lib.librarycloud.collections.dao.CollectionDAO"/>
+  <bean id="CollectionsWorkflow" class="edu.harvard.lib.librarycloud.collections.CollectionsWorkflow"/>
 
 </beans>
