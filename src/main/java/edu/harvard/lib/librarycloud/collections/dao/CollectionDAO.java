@@ -168,15 +168,25 @@ public class CollectionDAO  {
     /**
      * Retrieve items associated with a collection based on the collectionId.
      * @param  id Id of the collection.
+     * @param page Page number and size.
      * @return List of matching Item objects.
      */
-    public List<Item> getItemsByCollection(Integer id)
+    public List<Item> getItemsByCollection(Integer id, PageParams page)
     {
-        String query = "select i from Collection c JOIN c.items i WHERE c.id = :collectionId";
+        int rowStart = page.getPage() * page.getSize();
+        int rowCount = page.getSize();
+        String query = "select i from Collection c JOIN c.items i WHERE c.id = :collectionId ORDER BY i.id";
         List<Item> result = em.createQuery(query, Item.class)
             .setParameter("collectionId",id)
+            .setFirstResult(rowStart)
+            .setMaxResults(rowCount)
             .getResultList();
         return result;
+    }
+
+    public List<Item> getItemsByCollection(Integer id)
+    {
+        return getItemsByCollection(id, new PageParams(0, 1000));
     }
 
     /**

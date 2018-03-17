@@ -134,9 +134,16 @@ public class CollectionsAPI {
      */
     @GET @Path("collections/{id}/items")
     @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
-    public List<Item> getItemsByCollection(@PathParam("id") Integer id) {
-
-        List<Item> results = collectionDao.getItemsByCollection(id);
+    public List<Item> getItemsByCollection(@PathParam("id") Integer id,
+                                           @QueryParam("page") Integer page,
+                                           @QueryParam("size") Integer size) {
+        List<Item> results;
+        if(page == null || size == null) {
+            results = collectionDao.getItemsByCollection(id);
+        } else {
+            PageParams pageParams = new PageParams(page, size);
+            results = collectionDao.getItemsByCollection(id, pageParams);
+        }
         return results;
     }
     /**

@@ -30,6 +30,7 @@ import edu.harvard.lib.librarycloud.collections.model.User;
 import edu.harvard.lib.librarycloud.collections.model.Item;
 import edu.harvard.lib.librarycloud.collections.model.Collection;
 import edu.harvard.lib.librarycloud.collections.dao.CollectionDAO;
+import edu.harvard.lib.librarycloud.collections.dao.PageParams;
 
 
 @RunWith( SpringJUnit4ClassRunner.class )
@@ -225,5 +226,27 @@ public class CollectionDAOTest {
 
         //ensure i2 was deleted when c2 was deleted
         assertEquals(collectionDao.getItemByInternalId(i2Id), null);
+    }
+
+
+    @Test
+    @Rollback
+    public void testPagingItems() {
+        User u = collectionDao.getUserForAPIToken("00000");
+        Collection c = new Collection();
+        c.setTitle("has-items");
+        Integer cId = collectionDao.createCollection(c, u);
+
+        for(int i = 0; i < 50; ++i) {
+            Item it = new Item();
+            it.setItemId("Item " + i);
+            boolean result = collectionDao.addToCollection(cId, it);
+        }
+
+        PageParams params = new PageParams(0, 10);
+
+        List<Item> cItems = collectionDao.getItemsByCollection(cId, params);
+        assertEquals(10, cItems.size());
+
     }
 }
