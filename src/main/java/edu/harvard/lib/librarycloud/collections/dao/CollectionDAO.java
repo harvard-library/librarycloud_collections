@@ -87,7 +87,7 @@ public class CollectionDAO  {
 
         result = query.getResultList();
 
-        result = assignRights(result, u);
+        // result = assignRights(result, u);
 
         return result;
     }
@@ -104,7 +104,7 @@ public class CollectionDAO  {
             .setParameter("external_item_id", external_item_id)
             .getResultList();
 
-        result = assignRights(result, u);
+        // result = assignRights(result, u);
 
         return result;
     }
@@ -458,25 +458,25 @@ public class CollectionDAO  {
     }
 
 
-    private List<Collection> assignRights(List<Collection> coll, User u) {
-        //if this is a call secured with a user call, attribute the collections list with the permissions for this user
-        if (u != null) {
-            List<UserCollection> ucs = getUserCollectionsForUser(u);
-            if (ucs != null){
-                for(UserCollection uc : ucs) {
-                    Collection c = uc.getCollection();
-                    log.debug(c.getTitle() + ":" + c.getId());
-                    for (Collection innerc : coll) {
-                        if (innerc.getId() == c.getId()) {
-                            uc.setCollection(null);
-                            innerc.setAccessRights(uc);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        return coll;
-    }
+    // private List<Collection> assignRights(List<Collection> coll, User u) {
+    //     //if this is a call secured with a user call, attribute the collections list with the permissions for this user
+    //     if (u != null) {
+    //         List<UserCollection> ucs = getUserCollectionsForUser(u);
+    //         if (ucs != null){
+    //             for(UserCollection uc : ucs) {
+    //                 Collection c = uc.getCollection();
+    //                 log.debug(c.getSetName() + ":" + c.getId());
+    //                 for (Collection innerc : coll) {
+    //                     if (innerc.getId() == c.getId()) {
+    //                         uc.setCollection(null);
+    //                         innerc.setAccessRights(uc);
+    //                         break;
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     return coll;
+    // }
 
 }

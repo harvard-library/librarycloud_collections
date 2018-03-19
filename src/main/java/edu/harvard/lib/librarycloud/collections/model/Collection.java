@@ -4,11 +4,14 @@ import java.util.*;
 import javax.persistence.*;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
-import edu.harvard.lib.librarycloud.collections.dao.CollectionDAO;
+import lombok.Getter;
+import lombok.Setter;
+
 import org.apache.log4j.Logger;
 import org.eclipse.persistence.oxm.annotations.XmlInverseReference;
+
+
 
 /* Implements a subset of the Dublin Core Collections Application Profile (DCCAP)
 
@@ -61,7 +64,26 @@ public class Collection  {
 
     public Collection() {}
 
-    @Id @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "created", nullable = false)
+    private Date created;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "modified", nullable = false)
+    private Date modified;
+
+    @PrePersist
+    protected void onCreate() {
+    modified = created = new Date();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+    modified = new Date();
+    }
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private int id;
 
     @ManyToMany(cascade = CascadeType.ALL)
@@ -71,43 +93,57 @@ public class Collection  {
     @OneToMany(mappedBy = "collection", cascade = CascadeType.ALL)
     private List<UserCollection> users = new ArrayList<>();
 
-    @Column(nullable = false)
-    private String title;
+    @Column(nullable = false, name="title")
+    @Getter @Setter
+    private String setName;
 
-    @Lob
-    private String summary;
-
-    private int extent;
-
-    private String language;
-
-    @Lob
-    private String rights;
-
+    @Getter @Setter
     private boolean dcp;
 
     @Column(name="is_public")
+    @Getter @Setter
     private boolean isPublic;
 
     @Lob
-    @Column(name="abstract")
-    private String collectionAbstract;
+    @Column(name="set_description")
+    @Getter @Setter
+    private String setDescription;
+
+    @Column(name="set_spec")
+    @Getter @Setter
+    private String setSpec;
 
     @Column(name="thumbnail_urn")
+    @Getter @Setter
     private String thumbnailUrn;
 
     @Column(name="collection_urn")
+    @Getter @Setter
     private String collectionUrn;
 
     @Column(name="base_url")
+    @Getter @Setter
     private String baseUrl;
+
+    @Column(name="contact_name")
+    @Getter @Setter
+    private String contactName;
+
+    @Column(name="contact_department")
+    @Getter @Setter
+    private String contactDepartment;
+
 
     @Transient
     private UserCollection accessRights;
 
-    @XmlElement(namespace="http://purl.org/dc/elements/1.1/", name="identifier")
+    @XmlElement(name="systemId")
 
     public int getId() {
+        return id;
+    }
+
+    public int getSystemId() {
         return id;
     }
 
@@ -151,53 +187,36 @@ public class Collection  {
         }
     }
 
-    @XmlElement(namespace="http://purl.org/dc/elements/1.1/", name="type")
-    public String getCollection() {
-        return "collection";
-    }
+    // @XmlElement(namespace="http://purl.org/dc/elements/1.1/", name="type")
+    // public String getCollection() {
+    //     return "collection";
+    // }
 
-    @XmlElement(namespace="http://purl.org/dc/elements/1.1/", name="title")
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    @XmlElement(namespace="http://purl.org/dc/terms/", name="abstract")
-    public String getSummary() {
-        return summary;
-    }
-
-    public void setSummary(String summary) {
-        this.summary = summary;
-    }
 
     // @XmlElement(namespace="http://purl.org/dc/terms", name="extent")
     // public int getExtent() {
     //  return this.extent;
     // }
 
-    @XmlElement(namespace="http://purl.org/dc/elements/1.1/", name="language")
-    public String getLanguage() {
-        return language;
-    }
+    // @XmlElement(namespace="http://purl.org/dc/elements/1.1/", name="language")
+    // public String getLanguage() {
+    //     return language;
+    // }
 
-    public void setLanguage(String language) {
-        this.language = language;
-    }
+    // public void setLanguage(String language) {
+    //     this.language = language;
+    // }
 
-    @XmlElement(namespace="http://purl.org/dc/elements/1.1/", name="rights")
-    public String getRights() {
-        return rights;
-    }
+    // @XmlElement(namespace="http://purl.org/dc/elements/1.1/", name="rights")
+    // public String getRights() {
+    //     return rights;
+    // }
 
-    public void setRights(String rights) {
-      this.rights = rights;
-    }
+    // public void setRights(String rights) {
+    //   this.rights = rights;
+    // }
 
-    @XmlElement(namespace="http://purl.org/dc/terms/", name="accessRights")
+    // @XmlElement(namespace="http://purl.org/dc/terms/", name="accessRights")
     public UserCollection getAccessRights() {
       return accessRights;
     }
@@ -226,54 +245,5 @@ public class Collection  {
       }
       return null;
     }
-
-    public void setDcp(boolean dcp) {
-        this.dcp = dcp;
-    }
-
-    public boolean isDcp() {
-        return dcp;
-    }
-
-    public void setPublic(boolean isPublic) {
-        this.isPublic = isPublic;
-    }
-
-    public boolean isPublic() {
-        return isPublic;
-    }
-
-    public void setAbstract(String collectionAbstract) {
-        this.collectionAbstract = collectionAbstract;
-    }
-
-    public String getAbstract() {
-        return collectionAbstract;
-    }
-
-    public void setThumbnailUrn(String thumbnailUrn) {
-        this.thumbnailUrn = thumbnailUrn;
-    }
-
-    public String getThumbnailUrn() {
-        return thumbnailUrn;
-    }
-
-    public void setCollectionUrn(String collectionUrn) {
-        this.collectionUrn = collectionUrn;
-    }
-
-    public String getCollectionUrn() {
-        return collectionUrn;
-    }
-
-    public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl;
-    }
-
-    public String getBaseUrl() {
-        return baseUrl;
-    }
-
 
 }

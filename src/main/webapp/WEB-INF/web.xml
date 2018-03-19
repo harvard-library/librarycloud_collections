@@ -9,10 +9,21 @@
         </listener-class>
     </listener>
 
+    <!-- <context-param> -->
+    <!--     <param-name>contextConfigLocation</param-name> -->
+    <!--     <param-value>/WEB-INF/classes/spring/applicationContext.xml</param-value> -->
+    <!-- </context-param> -->
     <context-param>
-        <param-name>contextConfigLocation</param-name>
-        <param-value>/WEB-INF/classes/spring/applicationContext.xml</param-value>
+      <param-name>contextClass</param-name>
+      <param-value>
+         org.springframework.web.context.support.AnnotationConfigWebApplicationContext
+      </param-value>
     </context-param>
+    <context-param>
+      <param-name>contextConfigLocation</param-name>
+      <param-value>edu.harvard.lib.librarycloud.collections</param-value>
+    </context-param>
+
 
     <servlet>
         <servlet-name>LibraryCloudCollectionsAPI</servlet-name>

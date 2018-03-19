@@ -5,28 +5,28 @@ import java.util.Collections;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.*;
 
-
 import org.apache.log4j.Logger;
 
 import org.glassfish.jersey.server.JSONP;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.*;
+
 
 import edu.harvard.lib.librarycloud.collections.dao.*;
 import edu.harvard.lib.librarycloud.collections.model.*;
+
 
 @Path("/v2")
 public class CollectionsAPI {
 
     private Logger log = Logger.getLogger(CollectionsAPI.class);
 
-    @Context 
+    @Context
     UriInfo uriInfo;
 
     @Context
@@ -44,10 +44,10 @@ public class CollectionsAPI {
     /**
      * Get all collections, or collections matching a query
      */
-    @GET @Path("collections") 
+    @GET @Path("collections")
     @JSONP(queryParam = "callback")
     @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
-    public List<Collection> getCollections(@QueryParam("contains") String contains,@QueryParam("q") String q, 
+    public List<Collection> getCollections(@QueryParam("contains") String contains,@QueryParam("q") String q,
             @QueryParam("title") String title, @QueryParam("abstract") String summary,
             @QueryParam("limit") Integer limit, @QueryParam("sort") String sort,
             @QueryParam("sort.asc") String sortAsc, @QueryParam("sort.desc") String sortDesc,
@@ -84,7 +84,7 @@ public class CollectionsAPI {
             //This is a kludge to handle the frontend/backend column naming.
             //If we find that this happens more often, a translation dictionary
             //should probably be implemented.
-            sortField = sortField.replace("abstract", "summary"); 
+            sortField = sortField.replace("abstract", "summary");
             try{
                 collections = collectionDao.getCollections(user, q, title, summary, false, limit, sortField, shouldSortAsc, start);
             } catch (Exception e){
@@ -109,7 +109,7 @@ public class CollectionsAPI {
         return Collections.singletonList(c);
     }
 
-    /** 
+    /**
      * Get items, and their associated collections.
      * 'external_ids' is a comma-separated list of canonical item IDs (e.g. the ids of items
      * in the source system)
@@ -157,12 +157,12 @@ public class CollectionsAPI {
 
         if (user == null) { //user not found.
             return Response.status(Status.UNAUTHORIZED).build();
-        }      
-        
+        }
+
         Integer id = collectionDao.createCollection(collection, user);
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
         URI uri = uriBuilder.path(id.toString()).build();
-        return Response.created(uri).build();        
+        return Response.created(uri).build();
     }
 
 
@@ -177,17 +177,17 @@ public class CollectionsAPI {
         if (!this.canEditItems(id)) {
             return Response.status(Status.UNAUTHORIZED).build();
         }
-    	Collection result = collectionDao.updateCollection(id,collection);
-    	if (result != null) {
+      Collection result = collectionDao.updateCollection(id,collection);
+      if (result != null) {
             try {
                 collectionsWorkflow.notify(result);
             } catch (Exception e) {
                 log.error(e);
                 e.printStackTrace();
             }
-            return Response.status(Status.NO_CONTENT).build(); 
+            return Response.status(Status.NO_CONTENT).build();
         }
-    
+
         return Response.status(Status.NOT_FOUND).build();
     }
 
@@ -218,7 +218,7 @@ public class CollectionsAPI {
             }
         }
         /* Return 204 if successful, 404 if not found. */
-        return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();        
+        return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();
     }
 
     /**
@@ -243,7 +243,7 @@ public class CollectionsAPI {
                     log.error(e);
                     e.printStackTrace();
                 }
-            }   
+            }
         }
         return Response.status(Status.NO_CONTENT).build();
     }
@@ -252,7 +252,7 @@ public class CollectionsAPI {
      * Remove items from a collection
      */
     @DELETE @Path("collections/{id}/items/{itemid}")
-    public Response removeItem(@PathParam("id") Integer id, 
+    public Response removeItem(@PathParam("id") Integer id,
                                @PathParam("itemid") String external_item_id) {
 
         if (!this.canEditItems(id)) {
@@ -262,15 +262,15 @@ public class CollectionsAPI {
         boolean result = collectionDao.removeFromCollection(id, external_item_id);
         if (result) {
             try {
-                collectionsWorkflow.notify(external_item_id);    
+                collectionsWorkflow.notify(external_item_id);
             } catch (Exception e) {
                 log.error(e);
                 e.printStackTrace();
             }
         }
-        
+
         /* Return 204 if successful, 404 if not found. */
-        return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();        
+        return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();
     }
 
     /*
@@ -357,7 +357,7 @@ public class CollectionsAPI {
     @GET @Path("roles")
     @JSONP(queryParam = "callback")
     @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
-    public List<Role> getRoles() {
+    public List<edu.harvard.lib.librarycloud.collections.model.Role> getRoles() {
 
         if (!isAuthenticated())
             throw new NotAuthorizedException("");

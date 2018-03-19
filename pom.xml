@@ -14,7 +14,23 @@
         <spring.version>4.3.14.RELEASE</spring.version>
         <openjpa.version>2.3.0</openjpa.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <properties.file>src/main/resources/librarycloud.collections.env.properties</properties.file>
     </properties>
+
+    <profiles>
+      <profile>
+        <id>testConfig</id>
+        <properties>
+          <properties.file>src/test/resources/librarycloud.collections.test.env.properties</properties.file>
+        </properties>
+        <activation>
+          <property>
+            <name>environment</name>
+            <value>test</value>
+          </property>
+        </activation>
+      </profile>
+    </profiles>
 
     <build>
         <finalName>collections</finalName>
@@ -55,27 +71,25 @@
                 <artifactId>tomcat7-maven-plugin</artifactId>
                 <version>2.2</version>
                 <configuration>
-                    <path>/</path>
+                    <path>${tomcat.path}</path>
                     <update>true</update>
-                    <url>http://localhost:8080/manager/text</url>
-                    <username>tomcat</username>
-                    <password>tomcat</password>
+                    <url>${tomcat.url}</url>
+                    <username>${tomcat.user}</username>
+                    <password>${tomcat.password}</password>
                 </configuration>
+            </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-war-plugin</artifactId>
+              <version>3.1.0</version>
+              <configuration>
+                <failOnMissingWebXml>false</failOnMissingWebXml>
+              </configuration>
             </plugin>
             <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-surefire-plugin</artifactId>
               <version>2.21.0</version>
-            </plugin>
-            <plugin>
-              <groupId>org.flywaydb</groupId>
-              <artifactId>flyway-maven-plugin</artifactId>
-              <version>5.0.7</version>
-              <configuration>
-                <url>${db_url}</url>
-                <user>${db_user}</user>
-                <password>${db_password}</password>
-              </configuration>
             </plugin>
             <plugin>
               <groupId>org.codehaus.mojo</groupId>
@@ -89,11 +103,22 @@
                   </goals>
                   <configuration>
                     <files>
-                      <file>src/test/resources/test.properties</file>
+                      <file>${properties.file}</file>
                     </files>
                   </configuration>
                 </execution>
               </executions>
+            </plugin>
+            <plugin>
+              <groupId>org.flywaydb</groupId>
+              <artifactId>flyway-maven-plugin</artifactId>
+              <version>5.0.7</version>
+              <configuration>
+                <url>${db_url}</url>
+                <user>${db_user}</user>
+                <password>${db_password}</password>
+                <locations>filesystem:src/main/resources/db/migration,classpath:edu.harvard.lib.librarycloud.db</locations>
+              </configuration>
             </plugin>
         </plugins>
     </build>
@@ -189,8 +214,8 @@
 
         <dependency>
             <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>2.5</version>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.0.1</version>
             <scope>provided</scope>
         </dependency>
 
@@ -251,5 +276,30 @@
             <version>4.12</version>
         </dependency>
 
-    </dependencies>
+        <!-- Lombok -->
+        <dependency>
+          <groupId>org.projectlombok</groupId>
+          <artifactId>lombok</artifactId>
+          <version>1.16.20</version>
+          <scope>compile</scope>
+        </dependency>
+
+      </dependencies>
+
+      <reporting>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <version>3.0.0</version>
+            <reportSets>
+              <reportSet>
+                <reports>
+                  <report>checkstyle</report>
+                </reports>
+              </reportSet>
+            </reportSets>
+          </plugin>
+        </plugins>
+      </reporting>
 </project>

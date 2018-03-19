@@ -1,6 +1,5 @@
 package edu.harvard.lib.librarycloud.collections.model;
 
-import java.util.List;
 import java.io.Serializable;
 import javax.persistence.*;
 import javax.xml.bind.annotation.XmlElement;

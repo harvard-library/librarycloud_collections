@@ -3,16 +3,7 @@
         xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
         version="2.0">
 
-    <persistence-unit name="collections-pu">
-        <provider>org.apache.openjpa.persistence.PersistenceProviderImpl</provider>
-    	<properties>
-            <property name="openjpa.RuntimeUnenhancedClasses" value="supported"/>
-			<property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver" />
-			<property name="javax.persistence.jdbc.url" value="jdbc:mysql://127.0.0.1:3306/collections" />
-			<property name="javax.persistence.jdbc.user" value="collections" />
-			<property name="javax.persistence.jdbc.password" value="collections" />
-            <property name="openjpa.jdbc.SynchronizeMappings" value="buildSchema(ForeignKeys=true)"/>
+  <persistence-unit name="this-empty-persistence-xml-keeps-openjpa-enhancer-sane" transaction-type="RESOURCE_LOCAL">
+  </persistence-unit>
 
-    	</properties>
-   </persistence-unit>
 </persistence>

@@ -39,7 +39,7 @@ import edu.harvard.lib.librarycloud.collections.dao.PageParams;
 public class CollectionDAOTest {
 
     @Configuration
-    @PropertySource("classpath:test.properties")
+    @PropertySource("classpath:librarycloud.collections.test.env.properties")
     static class ContextConfiguration {
 
         @Value( "${db_url}" )
@@ -152,25 +152,31 @@ public class CollectionDAOTest {
     public void testCreatingFullCollectionRecords() {
         User u = collectionDao.getUserForAPIToken("00000");
         Collection c = new Collection();
-        c.setTitle("title");
+        c.setSetName("title");
         c.setDcp(true);
         c.setPublic(true);
-        c.setAbstract("abstract");
+        c.setSetDescription("abstract");
         c.setThumbnailUrn("http://thumb.com");
         c.setCollectionUrn("http://coll.com");
         c.setBaseUrl("http://base.com");
-
+        c.setSetSpec("places:cambridge");
+        c.setContactName("thomas cole");
+        c.setContactDepartment("hudson river school");
 
         Integer cId = collectionDao.createCollection(c, u);
 
         c = collectionDao.getCollection(cId);
-        assertEquals("title", c.getTitle());
+        assertEquals("title", c.getSetName());
         assertEquals(true, c.isDcp());
         assertEquals(true, c.isPublic());
-        assertEquals("abstract", c.getAbstract());
+        assertEquals("abstract", c.getSetDescription());
         assertEquals("http://thumb.com", c.getThumbnailUrn());
         assertEquals("http://coll.com", c.getCollectionUrn());
         assertEquals("http://base.com", c.getBaseUrl());
+        assertEquals("places:cambridge", c.getSetSpec());
+        assertEquals("thomas cole", c.getContactName());
+        assertEquals("hudson river school", c.getContactDepartment());
+
     }
 
 
@@ -192,8 +198,8 @@ public class CollectionDAOTest {
         i2.setItemId(item2Id);
         Collection c1 = new Collection();
         Collection c2 = new Collection();
-        c1.setTitle(c1Title);
-        c2.setTitle(c2Title);
+        c1.setSetName(c1Title);
+        c2.setSetName(c2Title);
 
         Integer c1Id = collectionDao.createCollection(c1, u);
         Integer c2Id = collectionDao.createCollection(c2, u);
@@ -234,7 +240,7 @@ public class CollectionDAOTest {
     public void testPagingItems() {
         User u = collectionDao.getUserForAPIToken("00000");
         Collection c = new Collection();
-        c.setTitle("has-items");
+        c.setSetName("has-items");
         Integer cId = collectionDao.createCollection(c, u);
 
         for(int i = 0; i < 50; ++i) {

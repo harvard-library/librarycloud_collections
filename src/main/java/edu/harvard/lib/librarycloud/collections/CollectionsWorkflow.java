@@ -1,7 +1,6 @@
 package edu.harvard.lib.librarycloud.collections;
 
 import java.io.StringWriter;
-import java.util.Collections;
 import java.util.List;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
@@ -18,70 +17,70 @@ import edu.harvard.lib.librarycloud.collections.dao.CollectionDAO;
 import edu.harvard.lib.librarycloud.collections.model.*;
 
 public class CollectionsWorkflow {
-    Logger log = Logger.getLogger(CollectionsWorkflow.class); 
+    Logger log = Logger.getLogger(CollectionsWorkflow.class);
 
     @Autowired
     private CollectionDAO collectionDao;
 
     /* Format for a LibraryCloud message */
-    private String UPDATE_TEMPLATE = 
-    	"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + 
-		"<lib_comm_message>" + 
-	    	"<command>UPDATE</command>" + 
-      		"<payload>" + 
-	        	"<data>%s</data>" + 
-	    	"</payload>" + 
-		"</lib_comm_message>";
+    private String UPDATE_TEMPLATE =
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+    "<lib_comm_message>" +
+        "<command>UPDATE</command>" +
+          "<payload>" +
+            "<data>%s</data>" +
+        "</payload>" +
+    "</lib_comm_message>";
 
-	/**
-	 * Post a message to the ENVIRONMENT-update-public SQS queue with the 
-	 * updated collection information for an item
-	 * @param  external_item_id ID of the item to be updated
-	 * @throws Exception        
-	 */
-	public void notify(String external_item_id) throws Exception {
+  /**
+   * Post a message to the ENVIRONMENT-update-public SQS queue with the
+   * updated collection information for an item
+   * @param  external_item_id ID of the item to be updated
+   * @throws Exception
+   */
+  public void notify(String external_item_id) throws Exception {
 
-		Config config = Config.getInstance();
-		log.error(external_item_id);
-		Item item = collectionDao.getItem(external_item_id);
+    Config config = Config.getInstance();
+    log.error(external_item_id);
+    Item item = collectionDao.getItem(external_item_id);
 
-		/* If no item returned perhaps because the item belonged only 
-		   to a single collection which is now deleted, setup an empty 
-		   item with no collections as the update */
-		if (item == null) {
-			item = new Item();
-			item.setItemId(external_item_id);
-		}
-		String s = StringEscapeUtils.escapeXml(marshalItem(item));
-		String message = String.format(UPDATE_TEMPLATE,s);
+    /* If no item returned perhaps because the item belonged only
+       to a single collection which is now deleted, setup an empty
+       item with no collections as the update */
+    if (item == null) {
+      item = new Item();
+      item.setItemId(external_item_id);
+    }
+    String s = StringEscapeUtils.escapeXml(marshalItem(item));
+    String message = String.format(UPDATE_TEMPLATE,s);
 
         AmazonSQSAsyncClient sqs = new AmazonSQSAsyncClient(new BasicAWSCredentials(config.AWS_KEY, config.AWS_SECRET));
         CreateQueueResult createQueueResult = sqs.createQueue(config.SQS_ENVIRONMENT + "-update-public");
         SendMessageResult sendMessageResult = sqs.sendMessage(createQueueResult.getQueueUrl(), message);
         log.error(message);
-	}
+  }
 
-	public void notify(Collection c)  throws Exception {
-		List<Item> items = collectionDao.getItems(c);
-		for (Item item : items) {
-			notify(item.getItemId());
-		}
-	}
+  public void notify(Collection c)  throws Exception {
+    List<Item> items = collectionDao.getItems(c);
+    for (Item item : items) {
+      notify(item.getItemId());
+    }
+  }
 
-	/**
-	 * Marshall a Collections Item with associated Collections to XML
-	 * @param  item      Item to be marshalled
-	 * @return           XML representation of the item
-	 * @throws Exception 
-	 */
-	private String marshalItem(Item item) throws Exception {
+  /**
+   * Marshall a Collections Item with associated Collections to XML
+   * @param  item      Item to be marshalled
+   * @return           XML representation of the item
+   * @throws Exception
+   */
+  private String marshalItem(Item item) throws Exception {
 
-		StringWriter sw = new StringWriter();
-		Class[] classes = { Item.class, Collection.class };
-		JAXBContext jaxbContext = JAXBContext.newInstance(classes);
-		Marshaller marshaller = jaxbContext.createMarshaller();
-		marshaller.marshal(item, sw);
-		return sw.toString();
-	}
+    StringWriter sw = new StringWriter();
+    Class[] classes = { Item.class, Collection.class };
+    JAXBContext jaxbContext = JAXBContext.newInstance(classes);
+    Marshaller marshaller = jaxbContext.createMarshaller();
+    marshaller.marshal(item, sw);
+    return sw.toString();
+  }
 
 }
