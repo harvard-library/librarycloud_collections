@@ -117,7 +117,7 @@
                 <url>${db_url}</url>
                 <user>${db_user}</user>
                 <password>${db_password}</password>
-                <locations>filesystem:src/main/resources/db/migration,classpath:edu.harvard.lib.librarycloud.db</locations>
+                <locations>filesystem:src/main/resources/db/migration,classpath:db.migration</locations>
               </configuration>
             </plugin>
         </plugins>
