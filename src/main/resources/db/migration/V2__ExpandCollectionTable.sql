@@ -1,0 +1,11 @@
+ALTER TABLE `collection` ADD `dcp` BIT NOT NULL DEFAULT 0;
+ALTER TABLE `collection` ADD `is_public` BIT NOT NULL DEFAULT 0;
+ALTER TABLE `collection` ADD `set_description` text;
+ALTER TABLE `collection` ADD `set_spec` varchar(255);
+ALTER TABLE `collection` ADD `thumbnail_urn` varchar(255);
+ALTER TABLE `collection` ADD `collection_urn` varchar(255);
+ALTER TABLE `collection` ADD `base_url` varchar(255);
+ALTER TABLE `collection` ADD `created` DATETIME;
+ALTER TABLE `collection` ADD `modified` DATETIME;
+ALTER TABLE `collection` ADD `contact_name` varchar(255);
+ALTER TABLE `collection` ADD `contact_department` varchar(255);

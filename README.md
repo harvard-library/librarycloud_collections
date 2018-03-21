@@ -34,6 +34,19 @@ The LibraryCloud Collections API provides access to metadata about groups of ite
 
 Upate  ```librarycloud.collections.env``` with the AWS keys and SQS environment name to use. (The SQS environment sets the prefix that's added to all LibraryCloud queues)
 
+### Database setup and migrations
+Database connection settings can be configured in the following places:
+
+    src/main/resources/librarycloud.collections.env.properties
+    src/test/resources/librarycloud.collections.test.env.properties
+
+To run database migrations:
+
+    mvn initialize flyway:migrate
+
+Note: if you are working with an existing database without a `flywheel_schema_history` table, you
+will need to 'baseline' the database first.
+
 ### Build and deploy the application with Maven
 
 Setup Tomcat users for deployment. Edit ```{TOMCAT7_PATH}/conf/tomcat-users.xml``` and add
@@ -46,23 +59,16 @@ Restart Tomcat
 
     sudo service tomcat restart
 
-Setup Maven to use this authentication information. Edit ```{MAVEN_PATH}/conf/settings.xml```
+Place your tomcat configuration information with everything else in `src/main/resources/librarycloud.collections.env.properties`.
 
-    <server>
-        <id>TomcatServer</id>
-        <username>admin</username>
-        <password>PASSWORD_HERE</password>
-    </server>
-
-Update ```src/main/resources/META-INF/persistence.xml``` to have the correct database address, username, and password
+Place your database configuration information with everything else in `src/main/resources/librarycloud.collections.env.properties`.
 
 Build and deploy the application
 
-    mvn clean tomcat7:deploy
+    mvn clean initialize tomcat7:deploy
 
 The collections API will now be listening at http://SERVER:8080/v2/collections
 
 ### Setup authorized users
 
-Install MySQL client. 
-
+Install MySQL client.
