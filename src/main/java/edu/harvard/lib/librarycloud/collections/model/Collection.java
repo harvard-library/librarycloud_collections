@@ -66,10 +66,14 @@ public class Collection  {
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created", nullable = false)
+    @Getter
+    @XmlElement(name = "created")
     private Date created;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "modified", nullable = false)
+    @Getter
+    @XmlElement(name = "modified")
     private Date modified;
 
     @PrePersist

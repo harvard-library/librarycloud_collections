@@ -1,8 +1,10 @@
 package edu.harvard.lib.librarycloud.collections.test;
 
 import java.util.*;
+import java.sql.Timestamp;
 import org.junit.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +69,7 @@ public class CollectionDAOTest {
         @Bean
         Flyway flyway() {
             Flyway flyway = new Flyway();
-            flyway.setLocations("filesystem:src/main/resources/db/migration/");
+            flyway.setLocations("filesystem:src/main/resources/db/migration");
             flyway.setDataSource(dataSource());
             return flyway;
         }
@@ -149,6 +151,16 @@ public class CollectionDAOTest {
     }
 
     @Test
+    public void testGettingUserByAPIKey() {
+        User u1 = collectionDao.getUserForAPIToken("00000");
+        assertEquals(u1.getName(), "Test User");
+
+        User nobody = collectionDao.getUserForAPIToken("12345");
+        assertEquals(nobody, null);
+    }
+
+
+    @Test
     public void testCreatingFullCollectionRecords() {
         User u = collectionDao.getUserForAPIToken("00000");
         Collection c = new Collection();
@@ -177,6 +189,33 @@ public class CollectionDAOTest {
         assertEquals("thomas cole", c.getContactName());
         assertEquals("hudson river school", c.getContactDepartment());
 
+    }
+
+    @Test
+    public void testUpdatingCollectionRecords() {
+        User u = collectionDao.getUserForAPIToken("00000");
+
+        Timestamp beforeTime = new Timestamp(System.currentTimeMillis());
+        Collection c = new Collection();
+        c.setSetName("foo");
+        c.setPublic(true);
+
+        Integer cId = collectionDao.createCollection(c, u);
+        c = collectionDao.getCollection(cId);
+        Timestamp createTime = new Timestamp(c.getModified().getTime());
+
+        assertEquals(c.getSetName(), "foo");
+        assertTrue(beforeTime.before(createTime));
+
+        c.setSetName("bar");
+        c = collectionDao.updateCollection(cId, c);
+        Timestamp modifiedTime = new Timestamp(c.getModified().getTime());
+
+        assertEquals(c.getSetName(), "bar");
+        assertTrue(createTime.before(modifiedTime));
+
+        c = collectionDao.getCollection(cId);
+        assertEquals(c.getSetName(), "bar");
     }
 
 

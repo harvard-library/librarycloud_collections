@@ -8,83 +8,75 @@ import java.security.*;
 @Table(name = "user")
 public class User implements Principal {
 
-	public User() {}
+  public User() {}
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE)
-	private int id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  private int id;
 
-	@Column(nullable = false)
-	private String email;
+  @Column(nullable = false)
+  private String email;
 
-	private String name;
+  private String name;
 
-	@Column(unique = true, nullable = false)
-	private String token;
+  @Column(unique = true, nullable = false)
+  private String token;
 
-	private String role;
+  private String role;
 
-	@ManyToOne
-	@Column(name="usertype_id")
-	private UserType userType;
+  @ManyToOne
+  @Column(name="usertype_id")
+  private UserType userType;
 
-	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-	private List<UserCollection> collections;
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+  private List<UserCollection> collections;
 
-	//getters/setters
+  //getters/setters
 
-	public void setId(int id) { this.id = id; }
+  public void setId(int id) { this.id = id; }
 
-	public int getId() {
-		return id;
-	}
+  public int getId() {
+    return id;
+  }
 
-	public List<UserCollection> getCollections() {
-		return collections;
-	}
+  public List<UserCollection> getCollections() {
+    return collections;
+  }
 
-	public void setCollections(List<UserCollection> collections) {
-		this.collections = collections;
-	}
+  public void setCollections(List<UserCollection> collections) {
+    this.collections = collections;
+  }
 
-	public String getEmail() {
-		return email;
-	}
+  public String getEmail() {
+    return email;
+  }
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+  public void setEmail(String email) {
+    this.email = email;
+  }
 
-	public String getName() {
-		return name;
-	}
+  public String getName() {
+    return name;
+  }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+  public void setName(String name) {
+    this.name = name;
+  }
 
-//	public String getToken() {
-//		return token;
-//	}
-//
-//	public void setToken(String token) {
-//		this.token = token;
-//	}
+  public String getRole() {
+    return role;
+  }
 
-	public String getRole() {
-		return role;
-	}
+  public void setRole(String role) {
+    this.role = role;
+  }
 
-	public void setRole(String role) {
-		this.role = role;
-	}
+  public UserType getUserType() {
+    return userType;
+  }
 
-	public UserType getUserType() {
-		return userType;
-	}
-
-	public void setUserType(UserType userType) {
-		this.userType = userType;
-	}
+  public void setUserType(UserType userType) {
+    this.userType = userType;
+  }
 
 }

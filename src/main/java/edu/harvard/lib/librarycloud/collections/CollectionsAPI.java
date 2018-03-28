@@ -85,11 +85,9 @@ public class CollectionsAPI {
             //If we find that this happens more often, a translation dictionary
             //should probably be implemented.
             sortField = sortField.replace("abstract", "summary");
-            try{
-                collections = collectionDao.getCollections(user, q, title, summary, false, limit, sortField, shouldSortAsc, start);
-            } catch (Exception e){
-                throw new BadRequestException();
-            }
+
+            collections = collectionDao.getCollections(user, q, title, summary, false, limit, sortField, shouldSortAsc, start);
+
         }
 
         return collections;
@@ -179,16 +177,16 @@ public class CollectionsAPI {
         }
       Collection result = collectionDao.updateCollection(id,collection);
       if (result != null) {
-            try {
-                collectionsWorkflow.notify(result);
-            } catch (Exception e) {
-                log.error(e);
-                e.printStackTrace();
-            }
-            return Response.status(Status.NO_CONTENT).build();
+          try {
+              collectionsWorkflow.notify(result);
+          } catch (Exception e) {
+              log.error(e);
+              e.printStackTrace();
+          }
+          return Response.status(Status.NO_CONTENT).build();
         }
 
-        return Response.status(Status.NOT_FOUND).build();
+      return Response.status(Status.NOT_FOUND).build();
     }
 
     /**

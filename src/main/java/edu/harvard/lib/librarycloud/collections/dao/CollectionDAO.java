@@ -19,6 +19,13 @@ import edu.harvard.lib.librarycloud.collections.model.*;
 public class CollectionDAO  {
     private Logger log = Logger.getLogger(CollectionDAO.class);
 
+    public static class DAOUpdateException extends RuntimeException {
+        public DAOUpdateException(String message) {
+            super(message);
+        }
+    }
+
+
     @PersistenceContext
     private EntityManager em;
 
@@ -47,7 +54,6 @@ public class CollectionDAO  {
         //    }
 
         if (title != null && title.length() > (exactMatch ? 0 : 2)) {
-            log.debug("title = " + title);
             predicateANDList.add(criteriaBuilder.like(collectionRoot.get(type.getDeclaredSingularAttribute("title", String.class)), title));
         }
 
@@ -87,7 +93,7 @@ public class CollectionDAO  {
 
         result = query.getResultList();
 
-        // result = assignRights(result, u);
+        result = assignRights(result, u);
 
         return result;
     }
@@ -104,7 +110,7 @@ public class CollectionDAO  {
             .setParameter("external_item_id", external_item_id)
             .getResultList();
 
-        // result = assignRights(result, u);
+        result = assignRights(result, u);
 
         return result;
     }
@@ -232,19 +238,28 @@ public class CollectionDAO  {
     }
 
     @Transactional
-    public Collection updateCollection(Integer id, Collection c){
+    public Collection updateCollection(Integer id, Collection c) {
         Collection hydratedCollection;
         try {
             hydratedCollection = em.find(Collection.class, id);
             if (hydratedCollection == null)
-                return null;
+                throw new DAOUpdateException("Can't find collection: "+id);
 
             List<String> propertiesToCopy = new ArrayList<>();
-            propertiesToCopy.add("title");
-            propertiesToCopy.add("summary");
-            propertiesToCopy.add("rights");
-            propertiesToCopy.add("accessRights");
-            propertiesToCopy.add("language");
+            propertiesToCopy.add("setName");
+            propertiesToCopy.add("setDescription");
+            propertiesToCopy.add("setSpec");
+            propertiesToCopy.add("dcp");
+            propertiesToCopy.add("public");
+            propertiesToCopy.add("thumbnailUrn");
+            propertiesToCopy.add("collectionUrn");
+            propertiesToCopy.add("baseUrl");
+            propertiesToCopy.add("contactName");
+            propertiesToCopy.add("contactDepartment");
+            // propertiesToCopy.add("rights");
+            // propertiesToCopy.add("accessRights");
+            // propertiesToCopy.add("language");
+
 
             for (String property : propertiesToCopy) {
                 if (PropertyUtils.getProperty(c, property)!= null) {
@@ -255,7 +270,7 @@ public class CollectionDAO  {
             em.flush();
 
         } catch (Exception e) {
-            return null;
+            throw new DAOUpdateException(e.toString());
         }
         return hydratedCollection;
     }
@@ -458,25 +473,26 @@ public class CollectionDAO  {
     }
 
 
-    // private List<Collection> assignRights(List<Collection> coll, User u) {
-    //     //if this is a call secured with a user call, attribute the collections list with the permissions for this user
-    //     if (u != null) {
-    //         List<UserCollection> ucs = getUserCollectionsForUser(u);
-    //         if (ucs != null){
-    //             for(UserCollection uc : ucs) {
-    //                 Collection c = uc.getCollection();
-    //                 log.debug(c.getSetName() + ":" + c.getId());
-    //                 for (Collection innerc : coll) {
-    //                     if (innerc.getId() == c.getId()) {
-    //                         uc.setCollection(null);
-    //                         innerc.setAccessRights(uc);
-    //                         break;
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     return coll;
-    // }
+    private List<Collection> assignRights(List<Collection> coll, User u) {
+        //if this is a call secured with a user call, attribute the collections list with the permissions for this user
+        if (u != null) {
+            List<UserCollection> ucs = getUserCollectionsForUser(u);
+            if (ucs != null){
+                for(UserCollection uc : ucs) {
+                    Collection c = uc.getCollection();
+                    for (Collection innerc : coll) {
+                        if (innerc.getId() == c.getId()) {
+                            uc.setCollection(null);
+                            innerc.setAccessRights(uc);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return coll;
+    }
+
+
 
 }
