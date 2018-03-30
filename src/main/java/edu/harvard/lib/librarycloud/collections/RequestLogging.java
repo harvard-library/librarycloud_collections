@@ -21,9 +21,12 @@ import edu.harvard.lib.librarycloud.collections.model.*;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-// Unneeded in production
+import edu.harvard.lib.librarycloud.collections.Config;
+
 @Provider
 public class RequestLogging implements ContainerRequestFilter {
+
+    Config config = Config.getInstance();
 
     public static class CachingInputStream extends BufferedInputStream {
         public CachingInputStream(InputStream source) {
@@ -104,8 +107,7 @@ public class RequestLogging implements ContainerRequestFilter {
         log.debug("Starting Request Logging");
     }
 
-    @Override
-    public void filter(ContainerRequestContext requestContext)
+    private void _filter(ContainerRequestContext requestContext)
         throws IOException {
 
         String requestMethod = requestContext.getMethod();
@@ -121,4 +123,13 @@ public class RequestLogging implements ContainerRequestFilter {
             log.debug(json);
         }
     }
+
+    @Override
+    public void filter(ContainerRequestContext requestContext)
+        throws IOException {
+        if (config.REQUEST_LOGGING) {
+            _filter(requestContext);
+        }
+    }
+
 }

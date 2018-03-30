@@ -57,6 +57,7 @@ public class Config {
     public String SQS_ENVIRONMENT;
     public String AWS_KEY;
     public String AWS_SECRET;
+    public Boolean REQUEST_LOGGING;
     private static Config conf;
     public static String propFile = "librarycloud.collections.env.properties";
 
@@ -81,7 +82,6 @@ public class Config {
         txManager.setEntityManagerFactory(factory);
         return txManager;
     }
-
 
     @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
@@ -118,8 +118,6 @@ public class Config {
         return collectionsWorkflow;
     }
 
-
-
     public Config() {
         Properties props = new Properties();
 
@@ -132,6 +130,8 @@ public class Config {
         SQS_ENVIRONMENT = props.getProperty("librarycloud.sqs.environment");
         AWS_KEY = props.getProperty("aws.access.key");
         AWS_SECRET = props.getProperty("aws.secret.key");
+
+        REQUEST_LOGGING = "true".equals(props.getProperty("librarycloud.request_logging"));
     }
 
     public static synchronized Config getInstance() {
@@ -139,5 +139,7 @@ public class Config {
             conf = new Config();
         return conf;
     }
+
+
 
 }
