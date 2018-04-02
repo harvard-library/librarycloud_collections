@@ -9,10 +9,9 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.sqs.*;
-import com.amazonaws.services.sqs.model.*;
-
+import com.amazonaws.services.sqs.model.CreateQueueResult;
+import com.amazonaws.services.sqs.model.SendMessageResult;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
 import edu.harvard.lib.librarycloud.collections.dao.CollectionDAO;
 import edu.harvard.lib.librarycloud.collections.model.*;
 
@@ -21,6 +20,9 @@ public class CollectionsWorkflow {
 
     @Autowired
     private CollectionDAO collectionDao;
+
+    @Autowired
+    private AmazonSQSAsync sqsClient;
 
     /* Format for a LibraryCloud message */
     private String UPDATE_TEMPLATE =
@@ -54,10 +56,8 @@ public class CollectionsWorkflow {
     String s = StringEscapeUtils.escapeXml(marshalItem(item));
     String message = String.format(UPDATE_TEMPLATE,s);
 
-        AmazonSQSAsyncClient sqs = new AmazonSQSAsyncClient(new BasicAWSCredentials(config.AWS_KEY, config.AWS_SECRET));
-        CreateQueueResult createQueueResult = sqs.createQueue(config.SQS_ENVIRONMENT + "-update-public");
-        SendMessageResult sendMessageResult = sqs.sendMessage(createQueueResult.getQueueUrl(), message);
-        log.error(message);
+    CreateQueueResult createQueueResult = sqsClient.createQueue(config.SQS_ENVIRONMENT + "-update-public");
+    SendMessageResult sendMessageResult = sqsClient.sendMessage(createQueueResult.getQueueUrl(), message);
   }
 
   public void notify(Collection c)  throws Exception {

@@ -41,6 +41,14 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.apache.openjpa.persistence.PersistenceProviderImpl;
 import javax.sql.DataSource;
+
+import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
+import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+
 import edu.harvard.lib.librarycloud.collections.dao.CollectionDAO;
 import edu.harvard.lib.librarycloud.collections.CollectionsWorkflow;
 /**
@@ -55,9 +63,8 @@ import edu.harvard.lib.librarycloud.collections.CollectionsWorkflow;
 public class Config {
 
     public String SQS_ENVIRONMENT;
-    public String AWS_KEY;
-    public String AWS_SECRET;
     public Boolean REQUEST_LOGGING;
+
     private static Config conf;
     public static String propFile = "librarycloud.collections.env.properties";
 
@@ -69,6 +76,35 @@ public class Config {
 
     @Value( "${db_password}" )
     String dbPassword;
+
+    private String awsRegion = "us-east-1";
+
+    @Value( "${aws.sqs.endpoint}" )
+    private String awsSqsEndpoint;
+
+    @Value( "${aws.access.key}" )
+    private String awsAccessKey;
+
+    @Value( "${aws.secret.key}" )
+    private String awsSecretKey;
+
+
+    @Bean
+    public AmazonSQSAsync sqsClient() {
+        BasicAWSCredentials awsCredentials = new BasicAWSCredentials(awsAccessKey, awsSecretKey);
+        AWSStaticCredentialsProvider awsCredentialsProvider = new AWSStaticCredentialsProvider(awsCredentials);
+
+        AmazonSQSAsyncClientBuilder	sqsClientBuilder = AmazonSQSAsyncClientBuilder.standard().withCredentials(awsCredentialsProvider);
+
+        if (awsSqsEndpoint != null) {
+            sqsClientBuilder.setEndpointConfiguration(new EndpointConfiguration(awsSqsEndpoint, awsRegion));
+        } else {
+            sqsClientBuilder.setRegion(awsRegion);
+        }
+
+        return sqsClientBuilder.build();
+    }
+
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
@@ -128,9 +164,6 @@ public class Config {
         }
 
         SQS_ENVIRONMENT = props.getProperty("librarycloud.sqs.environment");
-        AWS_KEY = props.getProperty("aws.access.key");
-        AWS_SECRET = props.getProperty("aws.secret.key");
-
         REQUEST_LOGGING = "true".equals(props.getProperty("librarycloud.request_logging"));
     }
 
@@ -139,7 +172,4 @@ public class Config {
             conf = new Config();
         return conf;
     }
-
-
-
 }
