@@ -12,37 +12,37 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType (propOrder={"itemId","collections"})
 public class Item  {
 
-	public Item() {}
+  public Item() {}
 
-	@Id @GeneratedValue(strategy = GenerationType.SEQUENCE)
-	private int id;
+  @Id @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  private int id;
 
-	@Column(nullable = false)
-	private String itemId;
+  @Column(nullable = false)
+  private String itemId;
 
-	@ManyToMany(mappedBy="items")
-	private List<Collection> collections;
+  @ManyToMany(mappedBy="items")
+  private List<Collection> collections;
 
-	public int getId() {
-		return id;
-	}
+  public int getId() {
+    return id;
+  }
 
-	@XmlElement(name="item_id")
-	public String getItemId() {
-		return itemId;
-	}
+  @XmlElement(name="item_id")
+  public String getItemId() {
+    return itemId;
+  }
 
-	public void setItemId(String itemId) {
-		this.itemId = itemId;
-	}
+  public void setItemId(String itemId) {
+    this.itemId = itemId;
+  }
 
-	@XmlElement(name="collections")
-	public List<Collection> getCollections() {
-		return this.collections;
-	}
+  @XmlElement(name="collections")
+  public List<Collection> getCollections() {
+    return this.collections;
+  }
 
-	public void setCollections(List<Collection> collections) {
-		this.collections = collections;
-	}
+  public void setCollections(List<Collection> collections) {
+    this.collections = collections;
+  }
 
 }

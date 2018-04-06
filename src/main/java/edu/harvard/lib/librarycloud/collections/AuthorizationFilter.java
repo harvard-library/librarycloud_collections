@@ -15,7 +15,8 @@ import javax.ws.rs.ext.Provider;
 import edu.harvard.lib.librarycloud.collections.dao.*;
 import edu.harvard.lib.librarycloud.collections.model.*;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /* Provide token-based authorization filtering  */
@@ -26,21 +27,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class AuthorizationFilter implements ContainerRequestFilter {
 
 
-	Logger log = Logger.getLogger(AuthorizationFilter.class);
- 
+  Logger log = LogManager.getLogger(AuthorizationFilter.class);
+
     @Autowired
     private CollectionDAO collectionDao;
 
     private static final String APIKEYHEADER = "X-LibraryCloud-API-Key";
 
 
-	public AuthorizationFilter(){
-		log.debug("Starting AuthorizationFilter");
-	}
+  public AuthorizationFilter(){
+    log.debug("Starting AuthorizationFilter");
+  }
 
-	@Override
-	public void filter(ContainerRequestContext requestContext)
-		throws IOException {
+  @Override
+  public void filter(ContainerRequestContext requestContext)
+    throws IOException {
 
 
         // here we set a custom security context

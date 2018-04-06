@@ -1,12 +1,15 @@
 package edu.harvard.lib.librarycloud.collections;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.io.StringWriter;
 import java.util.List;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.amazonaws.services.sqs.model.CreateQueueResult;
@@ -16,22 +19,24 @@ import edu.harvard.lib.librarycloud.collections.dao.CollectionDAO;
 import edu.harvard.lib.librarycloud.collections.model.*;
 
 public class CollectionsWorkflow {
-    Logger log = Logger.getLogger(CollectionsWorkflow.class);
+  Logger log = LogManager.getLogger(CollectionsWorkflow.class);
 
-    @Autowired
-    private CollectionDAO collectionDao;
+  @Autowired
+  private CollectionDAO collectionDao;
 
-    @Autowired
-    private AmazonSQSAsync sqsClient;
+  @Autowired
+  private AmazonSQSAsync sqsClient;
 
-    /* Format for a LibraryCloud message */
-    private String UPDATE_TEMPLATE =
-      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+  private Marshaller marshaller;
+
+  /* Format for a LibraryCloud message */
+  private String UPDATE_TEMPLATE =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
     "<lib_comm_message>" +
-        "<command>UPDATE</command>" +
-          "<payload>" +
-            "<data>%s</data>" +
-        "</payload>" +
+    "<command>UPDATE</command>" +
+    "<payload>" +
+    "<data>%s</data>" +
+    "</payload>" +
     "</lib_comm_message>";
 
   /**
@@ -41,23 +46,16 @@ public class CollectionsWorkflow {
    * @throws Exception
    */
   public void notify(String external_item_id) throws Exception {
-
+    log.debug("Notify SQS: "+external_item_id);
     Config config = Config.getInstance();
-    log.error(external_item_id);
     Item item = collectionDao.getItem(external_item_id);
 
-    /* If no item returned perhaps because the item belonged only
-       to a single collection which is now deleted, setup an empty
-       item with no collections as the update */
-    if (item == null) {
-      item = new Item();
-      item.setItemId(external_item_id);
-    }
     String s = StringEscapeUtils.escapeXml(marshalItem(item));
     String message = String.format(UPDATE_TEMPLATE,s);
 
     CreateQueueResult createQueueResult = sqsClient.createQueue(config.SQS_ENVIRONMENT + "-update-public");
     SendMessageResult sendMessageResult = sqsClient.sendMessage(createQueueResult.getQueueUrl(), message);
+    log.debug(sendMessageResult);
   }
 
   public void notify(Collection c)  throws Exception {
@@ -74,11 +72,12 @@ public class CollectionsWorkflow {
    * @throws Exception
    */
   private String marshalItem(Item item) throws Exception {
-
     StringWriter sw = new StringWriter();
-    Class[] classes = { Item.class, Collection.class };
-    JAXBContext jaxbContext = JAXBContext.newInstance(classes);
-    Marshaller marshaller = jaxbContext.createMarshaller();
+    if (marshaller == null) {
+      Class[] classes = { Item.class, Collection.class };
+      JAXBContext jaxbContext = JAXBContext.newInstance(classes);
+      marshaller = jaxbContext.createMarshaller();
+    }
     marshaller.marshal(item, sw);
     return sw.toString();
   }

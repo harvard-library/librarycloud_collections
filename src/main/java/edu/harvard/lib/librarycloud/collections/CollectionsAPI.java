@@ -5,14 +5,20 @@ import java.util.Collections;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.InputStream;
+
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.*;
 
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import org.glassfish.jersey.server.JSONP;
+import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;
 
@@ -24,7 +30,7 @@ import edu.harvard.lib.librarycloud.collections.model.*;
 @Path("/v2")
 public class CollectionsAPI {
 
-    private Logger log = Logger.getLogger(CollectionsAPI.class);
+    private Logger log = LogManager.getLogger(CollectionsAPI.class);
 
     @Context
     UriInfo uriInfo;
@@ -40,6 +46,9 @@ public class CollectionsAPI {
 
     @Autowired
     private CollectionsWorkflow collectionsWorkflow;
+
+    @Autowired
+    private BatchItemProcessor batchItemProcessor;
 
     /**
      * Get all collections, or collections matching a query
@@ -93,13 +102,16 @@ public class CollectionsAPI {
         return collections;
     }
 
+
     /**
      * Get a collection
      */
     @GET @Path("collections/{id}")
     @JSONP(queryParam = "callback")
     @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
-    public List<Collection> getCollection(@PathParam("id") Integer id) {
+    public List<Collection> getCollection(
+                                          @PathParam("id") Integer id
+                                          ) {
         Collection c = collectionDao.getCollection(id);
         if (c == null) {
             throw new NotFoundException();
@@ -115,7 +127,9 @@ public class CollectionsAPI {
     @GET @Path("collections/items/{external_ids}")
     @JSONP(queryParam = "callback")
     @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
-    public List<Item> getItems(@PathParam("external_ids") String external_ids) {
+    public List<Item> getItems(
+                               @PathParam("external_ids") String external_ids
+                               ) {
         List<String> external_id_list = new ArrayList<>(Arrays.asList(external_ids.split(",")));
         if (external_id_list.isEmpty()) {
             throw new NotFoundException();
@@ -171,7 +185,9 @@ public class CollectionsAPI {
      */
     @PUT @Path("collections/{id}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response updateCollection(@PathParam("id") Integer id, Collection collection) {
+    public Response updateCollection(
+                                     @PathParam("id") Integer id, Collection collection
+                                     ) {
         if (!this.canEditItems(id)) {
             return Response.status(Status.UNAUTHORIZED).build();
         }
@@ -193,7 +209,9 @@ public class CollectionsAPI {
      * Delete a collection
      */
     @DELETE @Path("collections/{id}")
-    public Response deleteCollection(@PathParam("id") Integer id) {
+    public Response deleteCollection(
+                                     @PathParam("id") Integer id
+                                     ) {
         Collection c = collectionDao.getCollection(id);
 
         if (c == null) {
@@ -224,7 +242,9 @@ public class CollectionsAPI {
      */
     @POST @Path("collections/{id}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response addItems(@PathParam("id") Integer id, List<Item> items) {
+    public Response addItems(
+                             @PathParam("id") Integer id, List<Item> items
+                             ) {
 
         if (!this.canEditItems(id)) {
             return Response.status(Status.UNAUTHORIZED).build();
@@ -250,8 +270,10 @@ public class CollectionsAPI {
      * Remove items from a collection
      */
     @DELETE @Path("collections/{id}/items/{itemid}")
-    public Response removeItem(@PathParam("id") Integer id,
-                               @PathParam("itemid") String external_item_id) {
+    public Response removeItem(
+                               @PathParam("id") Integer id,
+                               @PathParam("itemid") String external_item_id
+                               ) {
 
         if (!this.canEditItems(id)) {
             return Response.status(Status.UNAUTHORIZED).build();
@@ -270,6 +292,32 @@ public class CollectionsAPI {
         /* Return 204 if successful, 404 if not found. */
         return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();
     }
+
+
+    @POST @Path("collections/{id}/items_batch_upload")
+    @Consumes({"multipart/form-data", MediaType.MULTIPART_FORM_DATA})
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response batchUploadItems(
+                                     @PathParam("id") Integer id,
+                                     @FormDataParam("file") InputStream uploadedItemList,
+                                     @FormDataParam("file") FormDataContentDisposition fileDetail
+                                     ) {
+
+        if (!this.canEditItems(id)) {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+
+        boolean result;
+        try {
+            result = batchItemProcessor.addBatch(id, uploadedItemList);
+        } catch (Exception e) {
+            log.error(e);
+            e.printStackTrace();
+            result = false;
+        }
+        return Response.status(result ? 200 : 409).build();
+    }
+
 
     /*
    Add or update a user to a collection

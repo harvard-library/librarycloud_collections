@@ -18,7 +18,8 @@ import javax.ws.rs.ext.Provider;
 import edu.harvard.lib.librarycloud.collections.dao.*;
 import edu.harvard.lib.librarycloud.collections.model.*;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import edu.harvard.lib.librarycloud.collections.Config;
@@ -99,7 +100,7 @@ public class RequestLogging implements ContainerRequestFilter {
     }
 
 
-    Logger log = Logger.getLogger(RequestLogging.class);
+    Logger log = LogManager.getLogger(RequestLogging.class);
 
     private static final String APIKEYHEADER = "X-LibraryCloud-API-Key";
 

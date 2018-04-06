@@ -160,6 +160,8 @@ public class CollectionDAOTest {
     }
 
 
+
+
     @Test
     public void testCreatingFullCollectionRecords() {
         User u = collectionDao.getUserForAPIToken("00000");
@@ -292,6 +294,38 @@ public class CollectionDAOTest {
 
         List<Item> cItems = collectionDao.getItemsByCollection(cId, params);
         assertEquals(10, cItems.size());
-
     }
+
+    @Test
+    public void testAddingItems() {
+        User u = collectionDao.getUserForAPIToken("00000");
+
+        Collection c = new Collection();
+        c.setSetName("foo");
+
+        Integer cId = collectionDao.createCollection(c, u);
+
+        // add a single item
+        Item i = new Item();
+        i.setItemId("1");
+
+        collectionDao.addToCollection(cId, i);
+
+        assertEquals(collectionDao.getItemsByCollection(cId).get(0).getItemId(), "1");
+
+
+        // add a list of item ids with 1 duplicate
+        List<Item> items = new ArrayList<Item>();
+        int x = 0;
+        while(x < 100) {
+            i = new Item();
+            i.setItemId(""+x);
+            items.add(i);
+            x = x+1;
+        }
+        collectionDao.addToCollection(cId, items);
+
+        assertEquals(100, collectionDao.getItemsByCollection(cId).size());
+    }
+
 }

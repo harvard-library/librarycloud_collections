@@ -10,14 +10,15 @@ import javax.persistence.criteria.*;
 import javax.persistence.metamodel.*;
 
 import com.amazonaws.util.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import edu.harvard.lib.librarycloud.collections.model.*;
 
 public class CollectionDAO  {
-    private Logger log = Logger.getLogger(CollectionDAO.class);
+    private Logger log = LogManager.getLogger(CollectionDAO.class);
 
     public static class DAOUpdateException extends RuntimeException {
         public DAOUpdateException(String message) {
@@ -301,26 +302,35 @@ public class CollectionDAO  {
     }
 
     @Transactional
-    public boolean addToCollection(Integer id, Item item) {
+    public boolean addToCollection(Integer id, List<Item> items) {
         Collection c;
         c = em.find(Collection.class, id);
-        String externalItemId = item.getItemId();
-        if (c == null || StringUtils.isNullOrEmpty(externalItemId.replaceAll("\\s", ""))) {
-            return false;
-        }
-        List<Item> persistentItems = em.createQuery("SELECT i FROM Item i WHERE i.itemId = :external_item_id")
-            .setParameter("external_item_id", externalItemId)
-            .getResultList();
-        /* Check whether a matching item already exists. We should never have more than 1 */
-        if (persistentItems != null && persistentItems.size() == 1) {
+        for (Item item : items) {
+            String externalItemId = item.getItemId();
+            if (c == null || StringUtils.isNullOrEmpty(externalItemId.replaceAll("\\s", ""))) {
+                return false;
+            }
+            List<Item> persistentItems = em.createQuery("SELECT i FROM Item i WHERE i.itemId = :external_item_id")
+                .setParameter("external_item_id", externalItemId)
+                .getResultList();
+            /* Check whether a matching item already exists. We should never have more than 1 */
+            if (persistentItems != null && persistentItems.size() == 1) {
 
-            c.addItem(persistentItems.get(0));
-        } else {
-            c.addItem(item);
+                c.addItem(persistentItems.get(0));
+            } else {
+                c.addItem(item);
+            }
         }
         em.persist(c);
         em.flush();
+
         return true;
+    }
+
+    public boolean addToCollection(Integer id, Item item) {
+        List<Item> items = new ArrayList<>();
+        items.add(item);
+        return addToCollection(id, items);
     }
 
     @Transactional

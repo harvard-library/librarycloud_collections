@@ -8,7 +8,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.persistence.oxm.annotations.XmlInverseReference;
 
 
@@ -57,7 +58,7 @@ import org.eclipse.persistence.oxm.annotations.XmlInverseReference;
 @XmlRootElement(namespace = "http://api.lib.harvard.edu/v2/collection/", name="collection")
 public class Collection  {
     @Transient
-    Logger log = Logger.getLogger(Collection.class);
+    Logger log = LogManager.getLogger(Collection.class);
 
     public static final String ROLE_OWNER = "owner";
     public static final String ROLE_EDITOR = "editor";

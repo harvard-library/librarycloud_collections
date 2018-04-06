@@ -41,6 +41,8 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.apache.openjpa.persistence.PersistenceProviderImpl;
 import javax.sql.DataSource;
+import com.mchange.v2.c3p0.*;
+import java.beans.PropertyVetoException;
 
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
@@ -51,6 +53,8 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 
 import edu.harvard.lib.librarycloud.collections.dao.CollectionDAO;
 import edu.harvard.lib.librarycloud.collections.CollectionsWorkflow;
+import edu.harvard.lib.librarycloud.collections.BatchItemProcessor;
+
 /**
 *
 * Config is the standard LTS class for accessing properties from a properties file,
@@ -120,7 +124,7 @@ public class Config {
     }
 
     @Bean
-    public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory() throws PropertyVetoException{
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dataSource());
         em.setPackagesToScan(new String[] { "edu.harvard.lib.librarycloud.collections.model" });
@@ -132,13 +136,13 @@ public class Config {
 
 
     @Bean
-    public DataSource dataSource(){
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName("com.mysql.jdbc.Driver");
-        dataSource.setUrl(dbUrl);
-        dataSource.setUsername(dbUser);
-        dataSource.setPassword(dbPassword);
-        return dataSource;
+    public DataSource dataSource() throws PropertyVetoException {
+        ComboPooledDataSource cpds = new ComboPooledDataSource();
+        cpds.setDriverClass("com.mysql.jdbc.Driver");
+        cpds.setJdbcUrl(dbUrl);
+        cpds.setUser(dbUser);
+        cpds.setPassword(dbPassword);
+        return cpds;
     }
 
 
@@ -152,6 +156,12 @@ public class Config {
     public CollectionsWorkflow collectionsWorkflow() {
         CollectionsWorkflow collectionsWorkflow = new CollectionsWorkflow();
         return collectionsWorkflow;
+    }
+
+    @Bean
+    public BatchItemProcessor batchItemProcessor() {
+        BatchItemProcessor batchItemProcessor = new BatchItemProcessor();
+        return batchItemProcessor;
     }
 
     public Config() {
