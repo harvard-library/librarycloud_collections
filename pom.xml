@@ -11,7 +11,7 @@
 
     <properties>
         <jersey.version>2.25.1</jersey.version>
-        <spring.version>4.3.14.RELEASE</spring.version>
+        <spring.version>3.2.18.RELEASE</spring.version>
         <openjpa.version>2.4.2</openjpa.version>
         <aws-java-sdk.version>1.11.301</aws-java-sdk.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
