@@ -83,7 +83,7 @@ public class Config {
 
     private String awsRegion = "us-east-1";
 
-    @Value( "${aws.sqs.endpoint}" )
+    @Value( "${aws.sqs.endpoint:#{null}}" )
     private String awsSqsEndpoint;
 
     @Value( "${aws.access.key}" )
