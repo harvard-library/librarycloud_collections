@@ -26,7 +26,6 @@ public class CollectionDAO  {
         }
     }
 
-
     @PersistenceContext
     private EntityManager em;
 
@@ -327,6 +326,7 @@ public class CollectionDAO  {
         return true;
     }
 
+    @Transactional
     public boolean addToCollection(Integer id, Item item) {
         List<Item> items = new ArrayList<>();
         items.add(item);
