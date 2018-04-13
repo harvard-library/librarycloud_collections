@@ -17,4 +17,8 @@ public class PageParams {
     public int getSize() {
         return size;
     }
+
+    public void incrementUp() {
+        page = page + 1;
+    }
 }

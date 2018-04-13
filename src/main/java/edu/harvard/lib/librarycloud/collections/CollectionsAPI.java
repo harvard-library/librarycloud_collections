@@ -6,12 +6,15 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.io.InputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.*;
-
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.StreamingOutput;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -146,9 +149,11 @@ public class CollectionsAPI {
      */
     @GET @Path("collections/{id}/items")
     @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
-    public List<Item> getItemsByCollection(@PathParam("id") Integer id,
+    public List<Item> getItemsByCollection(
+                                           @PathParam("id") Integer id,
                                            @QueryParam("page") Integer page,
-                                           @QueryParam("size") Integer size) {
+                                           @QueryParam("size") Integer size
+                                           ) {
         List<Item> results;
         if(page == null || size == null) {
             results = collectionDao.getItemsByCollection(id);
@@ -158,6 +163,53 @@ public class CollectionsAPI {
         }
         return results;
     }
+
+    /**
+     * Get all items in a collection as a file
+     */
+    @GET @Path("collections/{id}/items_batch_download")
+    @Produces({"text/plain"})
+    public Response batchDownloadItemsByCollection(
+                                           @PathParam("id") final Integer id
+                                                   ) {
+
+        StreamingOutput streamOut = new StreamingOutput()
+            {
+                @Override
+                public void write(java.io.OutputStream output) throws IOException, WebApplicationException {
+                    try {
+                        PrintWriter writer = new PrintWriter(output);
+                        boolean doIt = true;
+                        PageParams pageParams = new PageParams(0, 1000);
+
+                        List<Item> chunk;
+
+                        while (doIt) {
+                            chunk = collectionDao.getItemsByCollection(id, pageParams);
+                            if (chunk.size() < 1000) {
+                                doIt = false;
+                            } else {
+                                pageParams.incrementUp();
+                            }
+
+                            for (Item item : chunk) {
+                                writer.write(item.getItemId() + "\r\n");
+                            }
+                            writer.flush();
+                        }
+                    } catch(Exception e) {
+                        log.error(e);
+                        e.printStackTrace();
+                    }
+                }
+            };
+
+        return Response
+            .ok(streamOut, MediaType.APPLICATION_OCTET_STREAM)
+            .header("content-disposition", "attachment; filename = items.txt")
+            .build();
+    }
+
     /**
      * Create a collection
      */
