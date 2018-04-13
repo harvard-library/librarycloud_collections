@@ -142,6 +142,7 @@ public class Config {
         cpds.setJdbcUrl(dbUrl);
         cpds.setUser(dbUser);
         cpds.setPassword(dbPassword);
+        cpds.setTestConnectionOnCheckout(true);
         return cpds;
     }
 
