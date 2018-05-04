@@ -272,21 +272,34 @@ public class CollectionsAPI {
         if (!this.isOwner(c)) {
             return Response.status(Status.UNAUTHORIZED).build();
         }
-
+        boolean success = true; //think positive
         List<Item> items = collectionDao.getItems(c);
-        boolean result = collectionDao.deleteCollection(id);
-        if (result) {
+
+        boolean result;
+        // first remove each item and notify SQS
+        for (Item item : items) {
+            result = collectionDao.removeFromCollection(id, item.getItemId());
+            if(success) {
+                success = result;
+            }
             try {
-                for (Item item : items) {
-                    collectionsWorkflow.notify(item.getItemId());
-                }
+                collectionsWorkflow.notify(item.getItemId());
             } catch (Exception e) {
                 log.error(e);
-                e.printStackTrace();
+                success = false;
             }
         }
+        // put the items back so they can be deleted by collectionDao :(
+        if (success ) {
+            success = collectionDao.addToCollection(id, items);
+        }
+
+        if (success) {
+            success = collectionDao.deleteCollection(id);
+        }
+
         /* Return 204 if successful, 404 if not found. */
-        return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();
+        return Response.status(success ? Status.NO_CONTENT : Status.NOT_FOUND).build();
     }
 
     /**
