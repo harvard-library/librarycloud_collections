@@ -179,9 +179,9 @@ public class CollectionDAO  {
      */
     public List<Item> getItemsByCollection(Integer id, PageParams page)
     {
-        int rowStart = page.getPage() * page.getSize();
+        int rowStart = (page.getPage() -1) * page.getSize();
         int rowCount = page.getSize();
-        String query = "select i from Collection c JOIN c.items i WHERE c.id = :collectionId ORDER BY i.id";
+        String query = "select i from Collection c JOIN c.items i WHERE c.id = :collectionId ORDER BY i.itemId";
         List<Item> result = em.createQuery(query, Item.class)
             .setParameter("collectionId",id)
             .setFirstResult(rowStart)
@@ -189,6 +189,16 @@ public class CollectionDAO  {
             .getResultList();
         return result;
     }
+
+
+    public Integer getItemCountForCollection(Integer id) {
+        String query = "SELECT COUNT(ITEMS_ID) FROM collection_item WHERE COLLECTIONS_ID = " + id;
+        Long result = (Long) em.createNativeQuery(query)
+            .getSingleResult();
+
+        return Integer.valueOf(result.intValue());
+    }
+
 
     public List<Item> getItemsByCollection(Integer id)
     {

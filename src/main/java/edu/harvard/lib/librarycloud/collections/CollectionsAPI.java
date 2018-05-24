@@ -5,6 +5,10 @@ import java.util.Collections;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.lang.Math;
+
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -162,6 +166,39 @@ public class CollectionsAPI {
             results = collectionDao.getItemsByCollection(id, pageParams);
         }
         return results;
+    }
+
+    /**
+     * Get items in a collection with pagination info
+     */
+    @GET @Path("collections/{id}/items_paginated")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Map getItemsByCollectionPaginated(
+                                           @PathParam("id") Integer id,
+                                           @QueryParam("page") Integer page,
+                                           @QueryParam("size") Integer size
+                                           ) {
+        Map<String, Object> paginatedResults = new HashMap<>();
+
+        List<Item> results;
+        PageParams pageParams;
+        if(page == null)
+            page = 1;
+
+        if(size == null)
+            size = 1000;
+
+        pageParams = new PageParams(page, size);
+        results = collectionDao.getItemsByCollection(id, pageParams);
+
+        Integer pageCount = (int)Math.floor(collectionDao.getItemCountForCollection(id) / pageParams.getSize()) + 1;
+
+        paginatedResults.put("total_pages", pageCount);
+        paginatedResults.put("current_page", pageParams.getPage());
+        paginatedResults.put("page_size", pageParams.getSize());
+        paginatedResults.put("items", results);
+
+        return paginatedResults;
     }
 
     /**

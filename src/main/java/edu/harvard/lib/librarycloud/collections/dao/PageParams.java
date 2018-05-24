@@ -6,7 +6,7 @@ public class PageParams {
     private int size;
 
     public PageParams(int page, int size) {
-        this.page = page;
+        this.page = (page > 0) ? page : 1;
         this.size = size;
     }
 

@@ -1,6 +1,10 @@
 package edu.harvard.lib.librarycloud.collections.test;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Iterator;
+import java.util.List;
 import java.sql.Timestamp;
 import org.junit.*;
 import static org.junit.Assert.assertEquals;
@@ -326,6 +330,69 @@ public class CollectionDAOTest {
         collectionDao.addToCollection(cId, items);
 
         assertEquals(100, collectionDao.getItemsByCollection(cId).size());
+    }
+
+    @Test
+    public void testGettingItems() {
+        User u = collectionDao.getUserForAPIToken("00000");
+
+        Collection c = new Collection();
+        c.setSetName("foo");
+
+        Integer cId = collectionDao.createCollection(c, u);
+        List<Item> items = new ArrayList<Item>();
+
+        String unorderedLetters = "bca";
+        String orderedLetters = "abc";
+        int x = 0;
+
+        while(x < 3) {
+            Item i = new Item();
+            i.setItemId(String.valueOf(unorderedLetters.charAt(x)));
+            items.add(i);
+            x = x+1;
+        }
+
+        collectionDao.addToCollection(cId, items);
+
+        items = collectionDao.getItemsByCollection(cId);
+
+        Iterator ii = items.iterator();
+
+        x = 0;
+        while(ii.hasNext()){
+            Item i = (Item)ii.next();
+            assertEquals(i.getItemId(), String.valueOf(orderedLetters.charAt(x)));
+            x = x+1;
+        }
+    }
+
+
+    @Test
+    public void testGettingItemCount() {
+        User u = collectionDao.getUserForAPIToken("00000");
+
+        Collection c = new Collection();
+        c.setSetName("foo");
+
+        Integer cId = collectionDao.createCollection(c, u);
+        List<Item> items = new ArrayList<Item>();
+
+        String unorderedLetters = "bca";
+        int x = 0;
+
+        while(x < 3) {
+            Item i = new Item();
+            i.setItemId(String.valueOf(unorderedLetters.charAt(x)));
+            items.add(i);
+            x = x+1;
+        }
+
+        collectionDao.addToCollection(cId, items);
+
+        Integer itemCount = collectionDao.getItemCountForCollection(cId);
+
+        assertEquals(itemCount, new Integer(3));
     }
 
 }

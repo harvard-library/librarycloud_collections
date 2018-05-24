@@ -8,7 +8,7 @@ import javax.ws.rs.core.Application;
 
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ServerProperties;
-
+import com.owlike.genson.ext.jaxrs.GensonJsonConverter;
 
 
 public class WebAppConfig extends Application {
@@ -19,6 +19,8 @@ public class WebAppConfig extends Application {
         // register resources and features
         classes.add(MultiPartFeature.class);
         classes.add(CollectionsAPI.class);
+        classes.add(GensonJsonConverter.class);
+
         return classes;
     }
 
