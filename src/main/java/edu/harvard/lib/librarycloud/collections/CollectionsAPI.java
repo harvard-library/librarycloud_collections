@@ -295,6 +295,25 @@ public class CollectionsAPI {
     }
 
     /**
+     * Trigger an Item API update for all items in the set
+     */
+    @POST @Path("collections/{id}/notify_item_api")
+    @Consumes({MediaType.APPLICATION_OCTET_STREAM})
+    public Response notifyItemAPI(
+                                  @PathParam("id") Integer id, byte[] bytes
+                                  ) {
+        Collection c = collectionDao.getCollection(id);
+        try {
+            collectionsWorkflow.notify(c);
+        } catch (Exception e) {
+            log.error(e);
+            e.printStackTrace();
+        }
+
+        return Response.status(Status.NO_CONTENT).build();
+    }
+
+    /**
      * Delete a collection
      */
     @DELETE @Path("collections/{id}")
