@@ -33,7 +33,7 @@ public class CollectionDAO  {
 
     public List<Collection> getCollections(User u, String q, String title,
                                            String summary, boolean exactMatch, Integer limit,
-                                           String sortField, boolean shouldSortAsc, Integer start
+                                           String sortField, boolean shouldSortAsc, Integer start, Boolean dcp
                                            ) {
 
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
@@ -70,6 +70,12 @@ public class CollectionDAO  {
             predicateORArray = predicateORList.toArray(predicateORArray);
             predicateANDList.add(criteriaBuilder.or(predicateORArray));
         }
+
+        if (dcp != null) {
+            boolean dcpCondition = dcp;
+            predicateANDList.add(criteriaBuilder.equal(collectionRoot.get("dcp"), dcpCondition));
+        }
+
 
         if (!sortField.equals("")) {
             if (!shouldSortAsc){

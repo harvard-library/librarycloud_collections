@@ -67,7 +67,8 @@ public class CollectionsAPI {
             @QueryParam("title") String title, @QueryParam("abstract") String summary,
             @QueryParam("limit") Integer limit, @QueryParam("sort") String sort,
             @QueryParam("sort.asc") String sortAsc, @QueryParam("sort.desc") String sortDesc,
-            @QueryParam("start") Integer start
+            @QueryParam("start") Integer start,
+            @QueryParam("dcp") Boolean dcp
             ) {
 
         User user = (User)securityContext.getUserPrincipal();
@@ -102,7 +103,7 @@ public class CollectionsAPI {
             //should probably be implemented.
             sortField = sortField.replace("abstract", "summary");
 
-            collections = collectionDao.getCollections(user, q, title, summary, false, limit, sortField, shouldSortAsc, start);
+            collections = collectionDao.getCollections(user, q, title, summary, false, limit, sortField, shouldSortAsc, start, dcp);
 
         }
 
