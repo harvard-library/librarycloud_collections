@@ -52,8 +52,8 @@ public class CollectionsWorkflow {
 
     String s = StringEscapeUtils.escapeXml(marshalItem(item));
     String message = String.format(UPDATE_TEMPLATE,s);
-
-    CreateQueueResult createQueueResult = sqsClient.createQueue(config.SQS_ENVIRONMENT + "-update-public");
+    // 20190115 added "librarycloud-" prefix
+    CreateQueueResult createQueueResult = sqsClient.createQueue("librarycloud-" + config.SQS_ENVIRONMENT + "-update-public");
     SendMessageResult sendMessageResult = sqsClient.sendMessage(createQueueResult.getQueueUrl(), message);
     log.debug(sendMessageResult);
   }
