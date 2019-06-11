@@ -145,7 +145,7 @@ public class CollectionsAPI {
         List<Item> ci = collectionDao.getItems(external_id_list);
         if (ci == null || ci.isEmpty()) {
             //throw new NotFoundException();
-            log.error("No collections found for this list");
+            log.error("No collections found for list starting: " + external_ids.split(",")[0]);
         }
         return ci;
     }
