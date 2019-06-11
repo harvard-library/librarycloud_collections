@@ -143,13 +143,9 @@ public class CollectionsAPI {
             throw new NotFoundException();
         }
         List<Item> ci = collectionDao.getItems(external_id_list);
-        try {
-            if (ci == null || ci.isEmpty()) {
-                //throw new NotFoundException();
-                //log.error("No collections found for this list");
-            }
-        } catch (Exception e){
-            log.error(e.getMessage());
+        if (ci == null || ci.isEmpty()) {
+            //throw new NotFoundException();
+            log.error("No collections found for list beginning:" + external_id_list[0]);
         }
         return ci;
     }
