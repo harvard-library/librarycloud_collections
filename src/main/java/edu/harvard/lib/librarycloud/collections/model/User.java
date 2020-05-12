@@ -29,7 +29,8 @@ public class User implements Principal {
 
  // @ManyToOne(cascade = CascadeType.ALL)
   @Column(name="usertype_id")
-  private UserType userType;
+  //private UserType userType;
+  private int userType;
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
   private List<UserCollection> collections;
@@ -82,13 +83,23 @@ public class User implements Principal {
     this.apiId = apiId;
   }
 
-  public UserType getUserType() {
+  public int getUserType() {
+        return userType;
+    }
+
+  public void setUserType(int userType) {
+        this.userType = userType;
+    }
+
+  /*public UserType getUserType() {
     return userType;
   }
 
   public void setUserType(UserType userType) {
     this.userType = userType;
   }
+
+   */
 
   public String getToken() {
     return null;
