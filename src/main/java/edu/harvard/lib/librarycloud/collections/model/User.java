@@ -19,12 +19,15 @@ public class User implements Principal {
 
   private String name;
 
-  @Column(unique = true, nullable = false)
+  @Column(unique = false, nullable = false)
   private String token;
 
   private String role;
 
-  @ManyToOne
+  @Column(name="api_id")
+  private int apiId;
+
+ // @ManyToOne(cascade = CascadeType.ALL)
   @Column(name="usertype_id")
   private UserType userType;
 
@@ -71,6 +74,14 @@ public class User implements Principal {
     this.role = role;
   }
 
+  public int getApiId() {
+    return apiId;
+  }
+
+  public void setApiId(int apiId) {
+    this.apiId = apiId;
+  }
+
   public UserType getUserType() {
     return userType;
   }
@@ -78,5 +89,14 @@ public class User implements Principal {
   public void setUserType(UserType userType) {
     this.userType = userType;
   }
+
+  public String getToken() {
+    return null;
+  }
+
+  public void setToken(String token) {
+    this.token = token;
+  }
+
 
 }

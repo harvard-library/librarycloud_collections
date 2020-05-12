@@ -241,6 +241,14 @@ public class CollectionDAO  {
         return result;
     }
 
+
+    @Transactional
+    public Integer createUser(User user) {
+        em.persist(user);
+        em.flush();
+        return user.getId();
+    }
+
     @Transactional
     public Integer createCollection(Collection c, User u) {
         //first save the collection to generate an Id
@@ -341,6 +349,8 @@ public class CollectionDAO  {
 
         return true;
     }
+
+
 
     @Transactional
     public boolean addToCollection(Integer id, Item item) {

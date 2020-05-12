@@ -250,6 +250,26 @@ public class CollectionsAPI {
     }
 
     /**
+     * Create a user
+     */
+    @POST @Path("users")
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response createUser(User user) {
+/*
+        User user = (User)securityContext.getUserPrincipal();
+
+        if (user == null) { //user not found.
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+*/
+        Integer id = collectionDao.createUser(user);
+        UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
+        URI uri = uriBuilder.path(id.toString()).build();
+        System.out.println("URI: " + uri);
+        return Response.created(uri).build();
+    }
+
+    /**
      * Create a collection
      */
     @POST @Path("collections")
