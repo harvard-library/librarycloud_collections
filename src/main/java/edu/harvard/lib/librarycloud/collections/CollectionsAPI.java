@@ -268,6 +268,21 @@ public class CollectionsAPI {
         return Response.created(uri).build();
     }
 
+    @DELETE @Path("users/{id}")
+    public Response deleteUser(@PathParam("id") Integer id) {
+        User user = collectionDao.getUserById(id);
+
+        // if (user == null) {
+        //     return Response.status(Status.NOT_FOUND).build();
+        // }
+        // // if (!this.isOwner(c)) {
+        // //     return Response.status(Status.UNAUTHORIZED).build();
+        // // }
+        boolean success = true;
+        collectionDao.deleteUser(user);
+        return Response.status(success ? Status.NO_CONTENT : Status.NOT_FOUND).build();
+    }
+
     /**
      * Create a user and return api key
      */

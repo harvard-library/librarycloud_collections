@@ -262,6 +262,25 @@ public class CollectionDAO  {
         return user.getId();
     }
 
+    public User getUserById(int id) {
+        String query = "select u from User u Where u.id = :id";
+        User founduser = em.createQuery(query, User.class)
+            .setParameter("id", id)
+            .getSingleResult();
+        return founduser;
+    }
+
+    @Transactional
+    public boolean deleteUser(User user) {
+        String query = "delete from User u WHERE u.id = :userId";
+
+        em.createQuery(query, User.class)
+            .setParameter("userId", user.getId())
+            .executeUpdate();
+
+        return true;
+    }
+
     @Transactional
     public Integer createCollection(Collection c, User u) {
         //first save the collection to generate an Id
