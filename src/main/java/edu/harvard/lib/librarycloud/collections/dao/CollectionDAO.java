@@ -8,6 +8,7 @@ import java.util.List;
 import javax.persistence.*;
 import javax.persistence.criteria.*;
 import javax.persistence.metamodel.*;
+import java.util.UUID;
 
 import com.amazonaws.util.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -16,6 +17,7 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import edu.harvard.lib.librarycloud.collections.model.*;
+import edu.harvard.lib.librarycloud.collections.Config;
 
 public class CollectionDAO  {
     private Logger log = LogManager.getLogger(CollectionDAO.class);
@@ -241,9 +243,19 @@ public class CollectionDAO  {
         return result;
     }
 
-
     @Transactional
     public Integer createUser(User user) {
+        Config config = Config.getInstance();
+        user.setToken(config.HDC_KEY);
+        em.persist(user);
+        em.flush();
+        return user.getId();
+    }
+
+    @Transactional
+    public Integer createUserUUID(User user) {
+        String key = UUID.randomUUID().toString();
+        user.setToken(key);
         em.persist(user);
         em.flush();
         return user.getId();

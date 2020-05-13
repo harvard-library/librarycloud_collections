@@ -265,8 +265,28 @@ public class CollectionsAPI {
         Integer id = collectionDao.createUser(user);
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
         URI uri = uriBuilder.path(id.toString()).build();
-        System.out.println("URI: " + uri);
         return Response.created(uri).build();
+    }
+
+    /**
+     * Create a user and return api key
+     */
+    @POST @Path("users_key")
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public String createUserUUID(User user) {
+/*
+        User user = (User)securityContext.getUserPrincipal();
+
+        if (user == null) { //user not found.
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+*/
+        Integer id = collectionDao.createUserUUID(user);
+        UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
+        URI uri = uriBuilder.path(id.toString()).build();
+        System.out.println("URI: " + uri);
+        //return Response.created(uri).build();
+        return "{\"api-key\": \"" + user.getToken() + "\"}";
     }
 
     /**
