@@ -252,9 +252,9 @@ public class CollectionsAPI {
     /**
      * Create a user
      */
-    @POST @Path("users")
+    @POST @Path("users_v1")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response createUser(User user) {
+    public Response createUserV1(User user) {
 /*
         User user = (User)securityContext.getUserPrincipal();
 
@@ -262,7 +262,7 @@ public class CollectionsAPI {
             return Response.status(Status.UNAUTHORIZED).build();
         }
 */
-        Integer id = collectionDao.createUser(user);
+        Integer id = collectionDao.createUserV1(user);
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
         URI uri = uriBuilder.path(id.toString()).build();
         return Response.created(uri).build();
@@ -271,9 +271,9 @@ public class CollectionsAPI {
     /**
      * Create a user and return api key
      */
-    @POST @Path("users_key")
+    @POST @Path("users")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public String createUserUUID(User user) {
+    public String createUser(User user) {
 /*
         User user = (User)securityContext.getUserPrincipal();
 
@@ -281,7 +281,7 @@ public class CollectionsAPI {
             return Response.status(Status.UNAUTHORIZED).build();
         }
 */
-        Integer id = collectionDao.createUserUUID(user);
+        Integer id = collectionDao.createUser(user);
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
         URI uri = uriBuilder.path(id.toString()).build();
         System.out.println("URI: " + uri);

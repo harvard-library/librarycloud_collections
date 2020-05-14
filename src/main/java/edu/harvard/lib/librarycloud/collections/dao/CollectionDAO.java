@@ -77,7 +77,8 @@ public class CollectionDAO  {
             boolean dcpCondition = dcp;
             predicateANDList.add(criteriaBuilder.equal(collectionRoot.get("dcp"), dcpCondition));
         }
-
+        // Only show public sets
+        predicateANDList.add(criteriaBuilder.equal(collectionRoot.get("isPublic"), true));
 
         if (!sortField.equals("")) {
             if (!shouldSortAsc){
@@ -244,7 +245,7 @@ public class CollectionDAO  {
     }
 
     @Transactional
-    public Integer createUser(User user) {
+    public Integer createUserV1(User user) {
         Config config = Config.getInstance();
         user.setToken(config.HDC_KEY);
         em.persist(user);
@@ -253,7 +254,7 @@ public class CollectionDAO  {
     }
 
     @Transactional
-    public Integer createUserUUID(User user) {
+    public Integer createUser(User user) {
         String key = UUID.randomUUID().toString();
         user.setToken(key);
         em.persist(user);
