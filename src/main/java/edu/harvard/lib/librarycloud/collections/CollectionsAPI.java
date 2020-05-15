@@ -272,14 +272,17 @@ public class CollectionsAPI {
     public Response deleteUser(@PathParam("id") Integer id) {
         User user = collectionDao.getUserById(id);
 
-        // if (user == null) {
-        //     return Response.status(Status.NOT_FOUND).build();
-        // }
+        if (user == null) {
+            return Response.status(Status.NOT_FOUND).build();
+        }
+
+        List<Collection> collections = collectionDao.getAllCollectionsForUser(user);
+        // List<Collection> userCollections = collectionDao.getAllCollectionsForUser(user);
         // // if (!this.isOwner(c)) {
         // //     return Response.status(Status.UNAUTHORIZED).build();
         // // }
         boolean success = true;
-        collectionDao.deleteUser(user);
+        collectionDao.deleteUser(id);
         return Response.status(success ? Status.NO_CONTENT : Status.NOT_FOUND).build();
     }
 

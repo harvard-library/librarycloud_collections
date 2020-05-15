@@ -270,13 +270,27 @@ public class CollectionDAO  {
         return founduser;
     }
 
-    @Transactional
-    public boolean deleteUser(User user) {
-        String query = "delete from User u WHERE u.id = :userId";
+    public List<Collection> getAllCollectionsForUser(User user) {
+        List<UserCollection> userCollections = getUserCollectionsForUser(user);
+        System.out.println("Found " + userCollections.size() + " User Collections");
 
-        em.createQuery(query, User.class)
-            .setParameter("userId", user.getId())
-            .executeUpdate();
+        List<Collection> result = new ArrayList<>();
+        for (UserCollection userCollection : userCollections) {
+            result.add(userCollection.getCollection());
+        }
+        
+        for (Collection collection : result) {
+            System.out.println("Collection Name: " + collection.getSetName());
+        }
+
+        return result;
+    }
+
+    @Transactional
+    public boolean deleteUser(Integer id) {
+        User user;
+        user = em.find(User.class, id);
+        em.remove(user);
 
         return true;
     }
