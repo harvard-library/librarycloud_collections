@@ -265,6 +265,10 @@ public class CollectionDAO  {
     @Transactional
     public Integer createCollection(Collection c, User u) {
         //first save the collection to generate an Id
+        if (u.getUserType() == 1) {
+            String hdcSetSpec = "hdc_" + c.getSetName().toLowerCase().replace(" ", "").replace(":","") + "_" + u.getId();
+            c.setSetSpec(hdcSetSpec);
+        }
         em.persist(c);
         //then get or create the role and assign the role to the user
         Role owner = getOrCreateRole(Collection.ROLE_OWNER);
