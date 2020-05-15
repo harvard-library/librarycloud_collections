@@ -273,20 +273,26 @@ public class CollectionsAPI {
      */
     @POST @Path("users")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public String createUser(User user) {
-/*
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response createUser(User newUser) {
+
         User user = (User)securityContext.getUserPrincipal();
 
         if (user == null) { //user not found.
+            //String jsonErr = "{\"api-key\": \"" + newUser.getToken() + "\"}";
             return Response.status(Status.UNAUTHORIZED).build();
         }
-*/
-        Integer id = collectionDao.createUser(user);
+        if (!user.getRole().equals(3)) { //user not admin status.
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+        System.out.println("ROLE: " + user.getRole());
+        Integer id = collectionDao.createUser(newUser);
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
         URI uri = uriBuilder.path(id.toString()).build();
         System.out.println("URI: " + uri);
         //return Response.created(uri).build();
-        return "{\"api-key\": \"" + user.getToken() + "\"}";
+        String json = "{\"api-key\": \"" + newUser.getToken() + "\"}";
+        return Response.ok(json, MediaType.APPLICATION_JSON).build();
     }
 
     /**
