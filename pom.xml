@@ -242,9 +242,9 @@
 
         <!-- Persistence -->
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.33</version>
+	    <groupId>mysql</groupId>
+	    <artifactId>mysql-connector-java</artifactId>
+	    <version>5.1.33</version>
         </dependency>
 
         <dependency>
