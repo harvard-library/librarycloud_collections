@@ -11,12 +11,5 @@ INSERT INTO user_type (id, name, description) VALUES ('1', 'Staff', 'Staff User'
 ALTER TABLE `user` ADD CONSTRAINT FK_USER_USERTYPE_ID FOREIGN KEY (usertype_id) REFERENCES user_type(id);
 UPDATE `user` SET usertype_id = '1';
 
--- Add foreign keys as appropriate to users, collections, and items
-ALTER TABLE `user_collection` ADD CONSTRAINT FK_USER_COLLECTION_USER FOREIGN KEY (user_id) REFERENCES user(id);
-ALTER TABLE `user_collection` ADD CONSTRAINT FK_USER_COLLECTION_COLLECTION FOREIGN KEY (collection_id) REFERENCES collection(id);
-
-ALTER TABLE `collection_item` ADD CONSTRAINT FK_COLLECTION_ITEM_COLLECTION FOREIGN KEY (COLLECTIONS_ID) REFERENCES collection(id);
-ALTER TABLE `collection_item` ADD CONSTRAINT FK_COLLECTION_ITEM_ITEM FOREIGN KEY (ITEMS_ID) REFERENCES item(id);
-
 -- Add admin role
 INSERT INTO role (id, description, name) VALUES (3, 'Admin user', 'admin');
