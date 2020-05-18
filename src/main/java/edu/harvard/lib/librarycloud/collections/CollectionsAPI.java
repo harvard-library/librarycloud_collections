@@ -252,7 +252,7 @@ public class CollectionsAPI {
     /**
      * Create a user
      */
-    @POST @Path("users_v1")
+    @POST @Path("collections/users_v1")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response createUserV1(User user) {
 /*
@@ -271,7 +271,7 @@ public class CollectionsAPI {
     /**
      * Create a user and return api key
      */
-    @POST @Path("users")
+    @POST @Path("collections/users")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response createUser(User newUser) {
