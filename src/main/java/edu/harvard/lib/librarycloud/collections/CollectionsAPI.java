@@ -268,9 +268,9 @@ public class CollectionsAPI {
         return Response.created(uri).build();
     }
 
-    @DELETE @Path("users/{id}")
-    public Response deleteUser(@PathParam("id") Integer id) {
-        User user = collectionDao.getUserById(id);
+    @DELETE @Path("users/")
+    public Response deleteUser() {
+        User user = (User)securityContext.getUserPrincipal();
 
         if (user == null) {
             return Response.status(Status.NOT_FOUND).build();
@@ -279,7 +279,7 @@ public class CollectionsAPI {
         List<Collection> collections = collectionDao.getAllCollectionsForUser(user);
         collectionDao.deleteCollections(collections);
         boolean success = true;
-        collectionDao.deleteUser(id);
+        collectionDao.deleteUser(user.getId());
         return Response.status(success ? Status.NO_CONTENT : Status.NOT_FOUND).build();
     }
 
