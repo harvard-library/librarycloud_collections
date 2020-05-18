@@ -375,6 +375,19 @@ public class CollectionDAO  {
     }
 
     @Transactional
+    public boolean deleteCollections(List<Collection> collections) {
+        boolean allSuccess = true;
+        for (Collection collection : collections) {
+            boolean collectionSuccess = deleteCollection(collection.getId());
+            if (!collectionSuccess) {
+                allSuccess = false;
+            }
+        }
+
+        return allSuccess;
+    }
+
+    @Transactional
     public boolean addToCollection(Integer id, List<Item> items) {
         Collection c;
         c = em.find(Collection.class, id);

@@ -277,10 +277,7 @@ public class CollectionsAPI {
         }
 
         List<Collection> collections = collectionDao.getAllCollectionsForUser(user);
-        // List<Collection> userCollections = collectionDao.getAllCollectionsForUser(user);
-        // // if (!this.isOwner(c)) {
-        // //     return Response.status(Status.UNAUTHORIZED).build();
-        // // }
+        collectionDao.deleteCollections(collections);
         boolean success = true;
         collectionDao.deleteUser(id);
         return Response.status(success ? Status.NO_CONTENT : Status.NOT_FOUND).build();
