@@ -19,7 +19,7 @@ public class User implements Principal {
 
   private String name;
 
-  @Column(unique = false, nullable = false)
+  @Column(unique = true, nullable = false)
   private String token;
 
   private String role;
