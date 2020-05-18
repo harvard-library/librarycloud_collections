@@ -282,10 +282,10 @@ public class CollectionsAPI {
             //String jsonErr = "{\"api-key\": \"" + newUser.getToken() + "\"}";
             return Response.status(Status.UNAUTHORIZED).build();
         }
-        if (!user.getRole().equals(3)) { //user not admin status.
+        //System.out.println("ROLE: " + user.getRole());
+        if (!user.getRole().equals("3")) { //user not admin status.
             return Response.status(Status.UNAUTHORIZED).build();
         }
-        System.out.println("ROLE: " + user.getRole());
         Integer id = collectionDao.createUser(newUser);
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
         URI uri = uriBuilder.path(id.toString()).build();
