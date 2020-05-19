@@ -13,3 +13,6 @@ UPDATE `user` SET usertype_id = '1';
 
 -- Add admin role
 INSERT INTO role (id, description, name) VALUES (3, 'Admin user', 'admin');
+
+-- email should be unique
+ALTER TABLE `user` ADD UNIQUE INDEX `email_UNIQUE` (`email` ASC) VISIBLE;
