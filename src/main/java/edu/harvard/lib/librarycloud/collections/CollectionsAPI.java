@@ -301,8 +301,11 @@ public class CollectionsAPI {
         //GenericEntity entity = new GenericEntity<User>(newUser){};
         //return Response.ok(entity).build();
         //return Response.created(uri).build();
-        String json = "{\"api-key\": \"" + newUser.getToken() + "\"}";
-        return Response.ok(json, MediaType.APPLICATION_JSON).build();
+        //NewUser nu = new NewUser(newUser.getEmail(),newUser.getToken());
+        GenericEntity entity = new GenericEntity<User>(newUser){};
+        //String json = "{\"api-key\": \"" + newUser.getToken() + "\"}";
+        //return Response.ok(json, MediaType.APPLICATION_JSON).build();
+        return Response.ok(entity).build();
     }
 
     /**
