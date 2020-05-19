@@ -268,7 +268,7 @@ public class CollectionsAPI {
         return Response.created(uri).build();
     }
 
-    @DELETE @Path("users/")
+    @DELETE @Path("collections/users/")
     public Response deleteUser() {
         User user = (User)securityContext.getUserPrincipal();
 
