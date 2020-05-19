@@ -280,16 +280,26 @@ public class CollectionsAPI {
 
         if (user == null) { //user not found.
             //String jsonErr = "{\"api-key\": \"" + newUser.getToken() + "\"}";
-            return Response.status(Status.UNAUTHORIZED).build();
+            //return Response.status(Status.UNAUTHORIZED).entity("{\"error\":\"Not Authorized\"}").type(MediaType.APPLICATION_JSON).build();
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
         //System.out.println("ROLE: " + user.getRole());
         if (!user.getRole().equals("3")) { //user not admin status.
-            return Response.status(Status.UNAUTHORIZED).build();
+            //return Response.status(Status.UNAUTHORIZED).entity("{\"error\":\"Not Authorized\"}").type(MediaType.APPLICATION_JSON).build();
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
-        Integer id = collectionDao.createUser(newUser);
-        UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
-        URI uri = uriBuilder.path(id.toString()).build();
-        System.out.println("URI: " + uri);
+        try {
+            Integer id = collectionDao.createUser(newUser);
+            UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
+            URI uri = uriBuilder.path(id.toString()).build();
+            //System.out.println("URI: " + uri);
+        } catch (Exception e) {
+            //return Response.status(500).entity("{\"error\":\"Error, please contact LTS Support\"}").type(MediaType.APPLICATION_JSON).build();
+            throw new LibraryCloudCollectionsException("Error, please contact LTS Support", Status.INTERNAL_SERVER_ERROR);
+        }
+
+        //GenericEntity entity = new GenericEntity<User>(newUser){};
+        //return Response.ok(entity).build();
         //return Response.created(uri).build();
         String json = "{\"api-key\": \"" + newUser.getToken() + "\"}";
         return Response.ok(json, MediaType.APPLICATION_JSON).build();
@@ -305,13 +315,17 @@ public class CollectionsAPI {
         User user = (User)securityContext.getUserPrincipal();
 
         if (user == null) { //user not found.
-            return Response.status(Status.UNAUTHORIZED).build();
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
 
         Integer id = collectionDao.createCollection(collection, user);
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
         URI uri = uriBuilder.path(id.toString()).build();
-        return Response.created(uri).build();
+        //System.out.println("COLL: " + collectionDao.getCollection(id));
+        Collection c = collectionDao.getCollection(id);
+        GenericEntity entity = new GenericEntity<Collection>(c){};
+        return Response.ok(entity).build();
+        //return Response.created(uri).build();
     }
 
 
@@ -326,7 +340,9 @@ public class CollectionsAPI {
                                      @PathParam("id") Integer id, Collection collection
                                      ) {
         if (!this.canEditItems(id)) {
-            return Response.status(Status.UNAUTHORIZED).build();
+            //return Response.status(Status.UNAUTHORIZED).build();
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
+
         }
       Collection result = collectionDao.updateCollection(id,collection);
       if (result != null) {
@@ -445,7 +461,7 @@ public class CollectionsAPI {
                                ) {
 
         if (!this.canEditItems(id)) {
-            return Response.status(Status.UNAUTHORIZED).build();
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
 
         boolean result = collectionDao.removeFromCollection(id, external_item_id);
@@ -473,7 +489,7 @@ public class CollectionsAPI {
                                      ) {
 
         if (!this.canEditItems(id)) {
-            return Response.status(Status.UNAUTHORIZED).build();
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
 
         boolean result;
