@@ -128,6 +128,33 @@ public class CollectionsAPI {
     }
 
     /**
+     * Get collections for user
+     */
+    @GET @Path("collections/user")
+    @JSONP(queryParam = "callback")
+    @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
+    public List<Collection> getCollection(
+                                            @QueryParam("page") Integer page,
+                                            @QueryParam("size") Integer size
+                                            ) {
+        User user = (User)securityContext.getUserPrincipal();
+        
+        if (user == null) {
+            throw new NotFoundException();
+        }
+
+        List<Collection> results;
+        if (page == null || size == null) {
+            results = collectionDao.getCollectionsForUser(user);
+        } else {
+            PageParams pageParams = new PageParams(page, size);
+            results = collectionDao.getCollectionsForUser(user, pageParams);
+        }
+                
+        return results;
+    }
+
+    /**
      * Get items, and their associated collections.
      * 'external_ids' is a comma-separated list of canonical item IDs (e.g. the ids of items
      * in the source system)
@@ -276,7 +303,7 @@ public class CollectionsAPI {
             return Response.status(Status.NOT_FOUND).build();
         }
 
-        List<Collection> collections = collectionDao.getAllCollectionsForUser(user);
+        List<Collection> collections = collectionDao.getCollectionsForUser(user);
         collectionDao.deleteCollections(collections);
         boolean success = true;
         collectionDao.deleteUser(user.getId());

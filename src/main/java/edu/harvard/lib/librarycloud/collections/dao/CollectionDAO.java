@@ -270,17 +270,31 @@ public class CollectionDAO  {
         return founduser;
     }
 
-    public List<Collection> getAllCollectionsForUser(User user) {
+    public List<Collection> getCollectionsForUser(User user, PageParams page) {
+        int rowStart = (page.getPage() -1) * page.getSize();
+        int rowCount = page.getSize();
+        String query = "SELECT uc FROM UserCollection uc WHERE uc.user.id = :user_id ORDER BY uc.collection.modified DESC";
+        List<UserCollection> userCollections = em.createQuery(query, UserCollection.class)
+            .setParameter("user_id", user.getId())
+            .setFirstResult(rowStart)
+            .setMaxResults(rowCount)
+            .getResultList();
+        
+        List<Collection> result = new ArrayList<>();
+        for (UserCollection userCollection : userCollections) {
+            result.add(userCollection.getCollection());
+        }
+
+        return result;
+    }
+
+    public List<Collection> getCollectionsForUser(User user) {
         List<UserCollection> userCollections = getUserCollectionsForUser(user);
         System.out.println("Found " + userCollections.size() + " User Collections");
 
         List<Collection> result = new ArrayList<>();
         for (UserCollection userCollection : userCollections) {
             result.add(userCollection.getCollection());
-        }
-        
-        for (Collection collection : result) {
-            System.out.println("Collection Name: " + collection.getSetName());
         }
 
         return result;
