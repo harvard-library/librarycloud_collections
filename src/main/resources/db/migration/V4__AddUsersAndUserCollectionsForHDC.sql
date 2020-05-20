@@ -16,3 +16,6 @@ INSERT INTO role (id, description, name) VALUES (3, 'Admin user', 'admin');
 
 -- email should be unique
 ALTER TABLE `user` ADD UNIQUE INDEX `email_UNIQUE` (`email` ASC) VISIBLE;
+
+-- set_spec should be unique
+ALTER TABLE `collection` ADD UNIQUE INDEX `set_spec_UNIQUE` (`set_spec` ASC) VISIBLE;
