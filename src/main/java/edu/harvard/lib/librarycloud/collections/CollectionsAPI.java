@@ -301,8 +301,11 @@ public class CollectionsAPI {
         //GenericEntity entity = new GenericEntity<User>(newUser){};
         //return Response.ok(entity).build();
         //return Response.created(uri).build();
-        String json = "{\"api-key\": \"" + newUser.getToken() + "\"}";
-        return Response.ok(json, MediaType.APPLICATION_JSON).build();
+        //NewUser nu = new NewUser(newUser.getEmail(),newUser.getToken());
+        GenericEntity entity = new GenericEntity<User>(newUser){};
+        //String json = "{\"api-key\": \"" + newUser.getToken() + "\"}";
+        //return Response.ok(json, MediaType.APPLICATION_JSON).build();
+        return Response.ok(entity).build();
     }
 
     /**
@@ -432,13 +435,14 @@ public class CollectionsAPI {
                              ) {
 
         if (!this.canEditItems(id)) {
-            return Response.status(Status.UNAUTHORIZED).build();
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
 
         for (Item item : items) {
             boolean result = collectionDao.addToCollection(id, item);
             if (!result) {
-                return Response.status(Status.NOT_FOUND).build();
+                System.out.println("No such item: " + item);
+                //throw new LibraryCloudCollectionsException("Item Not Found", Status.NOT_FOUND);
             } else {
                 try {
                     collectionsWorkflow.notify(item.getItemId());
@@ -448,7 +452,10 @@ public class CollectionsAPI {
                 }
             }
         }
-        return Response.status(Status.NO_CONTENT).build();
+        Collection c = collectionDao.getCollection(id);
+        GenericEntity entity = new GenericEntity<Collection>(c){};
+        return Response.ok(entity).build();
+        //return Response.status(Status.NO_CONTENT).build();
     }
 
     /**
