@@ -289,8 +289,10 @@ public class CollectionDAO  {
     }
 
     public List<Collection> getCollectionsForUser(User user) {
-        List<UserCollection> userCollections = getUserCollectionsForUser(user);
-        System.out.println("Found " + userCollections.size() + " User Collections");
+        String query = "SELECT uc FROM UserCollection uc WHERE uc.user.id = :user_id ORDER BY uc.collection.modified DESC";
+        List<UserCollection> userCollections = em.createQuery(query, UserCollection.class)
+            .setParameter("user_id", user.getId())
+            .getResultList();
 
         List<Collection> result = new ArrayList<>();
         for (UserCollection userCollection : userCollections) {
