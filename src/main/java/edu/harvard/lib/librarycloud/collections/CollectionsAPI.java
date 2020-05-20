@@ -268,6 +268,21 @@ public class CollectionsAPI {
         return Response.created(uri).build();
     }
 
+    @DELETE @Path("collections/users/")
+    public Response deleteUser() {
+        User user = (User)securityContext.getUserPrincipal();
+
+        if (user == null) {
+            return Response.status(Status.NOT_FOUND).build();
+        }
+
+        List<Collection> collections = collectionDao.getAllCollectionsForUser(user);
+        collectionDao.deleteCollections(collections);
+        boolean success = true;
+        collectionDao.deleteUser(user.getId());
+        return Response.status(success ? Status.NO_CONTENT : Status.NOT_FOUND).build();
+    }
+
     /**
      * Create a user and return api key
      */

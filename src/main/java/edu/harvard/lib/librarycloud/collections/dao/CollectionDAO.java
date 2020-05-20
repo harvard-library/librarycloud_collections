@@ -262,6 +262,39 @@ public class CollectionDAO  {
         return user.getId();
     }
 
+    public User getUserById(int id) {
+        String query = "select u from User u Where u.id = :id";
+        User founduser = em.createQuery(query, User.class)
+            .setParameter("id", id)
+            .getSingleResult();
+        return founduser;
+    }
+
+    public List<Collection> getAllCollectionsForUser(User user) {
+        List<UserCollection> userCollections = getUserCollectionsForUser(user);
+        System.out.println("Found " + userCollections.size() + " User Collections");
+
+        List<Collection> result = new ArrayList<>();
+        for (UserCollection userCollection : userCollections) {
+            result.add(userCollection.getCollection());
+        }
+        
+        for (Collection collection : result) {
+            System.out.println("Collection Name: " + collection.getSetName());
+        }
+
+        return result;
+    }
+
+    @Transactional
+    public boolean deleteUser(Integer id) {
+        User user;
+        user = em.find(User.class, id);
+        em.remove(user);
+
+        return true;
+    }
+
     @Transactional
     public Integer createCollection(Collection c, User u) {
         //first save the collection to generate an Id
@@ -339,6 +372,19 @@ public class CollectionDAO  {
 
         em.remove(c);
         return true;
+    }
+
+    @Transactional
+    public boolean deleteCollections(List<Collection> collections) {
+        boolean allSuccess = true;
+        for (Collection collection : collections) {
+            boolean collectionSuccess = deleteCollection(collection.getId());
+            if (!collectionSuccess) {
+                allSuccess = false;
+            }
+        }
+
+        return allSuccess;
     }
 
     @Transactional
