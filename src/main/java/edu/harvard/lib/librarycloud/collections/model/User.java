@@ -3,6 +3,7 @@ package edu.harvard.lib.librarycloud.collections.model;
 import java.util.*;
 import javax.persistence.*;
 import java.security.*;
+import javax.xml.bind.annotation.XmlElement;
 
 @Entity
 @Table(name = "user")
@@ -100,7 +101,7 @@ public class User implements Principal {
   }
 
    */
-
+  @XmlElement(name = "api-key")
   public String getToken() {return token;}
 
   public void setToken(String token) {
