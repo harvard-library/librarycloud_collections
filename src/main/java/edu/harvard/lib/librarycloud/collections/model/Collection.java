@@ -12,6 +12,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.persistence.oxm.annotations.XmlInverseReference;
 
+import edu.harvard.lib.librarycloud.collections.dao.*;
+import org.springframework.beans.factory.annotation.Autowired;
+
 
 
 /* Implements a subset of the Dublin Core Collections Application Profile (DCCAP)
@@ -57,6 +60,9 @@ import org.eclipse.persistence.oxm.annotations.XmlInverseReference;
 @Table(name="collection")
 @XmlRootElement(namespace = "http://api.lib.harvard.edu/v2/collection/", name="collection")
 public class Collection  {
+    @Autowired
+    private CollectionDAO collectionDao = new CollectionDAO();
+
     @Transient
     Logger log = LogManager.getLogger(Collection.class);
 
@@ -160,6 +166,12 @@ public class Collection  {
 
     public void setItems(List<Item> items) {
         this.items = items;
+    }
+
+    @XmlElement(name="collectionSize")
+    public int getCollectionSize() {
+      collectionDao.getAmountOfItemsInCollection(id);
+      return id;
     }
 
     public List<UserCollection> getUsers() {

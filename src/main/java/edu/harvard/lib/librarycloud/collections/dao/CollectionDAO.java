@@ -499,6 +499,12 @@ public class CollectionDAO  {
         return result;
     }
 
+    public void getAmountOfItemsInCollection(int id) {
+        // System.out.println("get amount of items in collection");
+        // Collection c = getCollection(301);
+        // System.out.println("Found collection with id: " + c.getId());
+    }
+
     @Transactional
     public Role getRole(int id) {
         Role result;
