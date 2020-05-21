@@ -507,17 +507,6 @@ public class CollectionDAO  {
         return result;
     }
 
-    public int getAmountOfItemsInCollection(int id) {
-        // System.out.println("get amount of items in collection");
-        // Collection c = getCollection(301);
-        // System.out.println("Found collection with id: " + c.getId());
-        String query = "SELECT i FROM Item i LEFT JOIN FETCH i.collections INNER JOIN i.collections c WHERE c.id = :collectionId";
-        List<Item> result = em.createQuery(query, Item.class)
-            .setParameter("collectionId", id)
-            .getResultList();
-        return result.size();
-    }
-
     @Transactional
     public Role getRole(int id) {
         Role result;
