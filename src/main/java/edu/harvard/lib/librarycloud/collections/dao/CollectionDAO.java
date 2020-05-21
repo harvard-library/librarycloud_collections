@@ -282,7 +282,7 @@ public class CollectionDAO  {
         
         List<Collection> result = new ArrayList<>();
         for (UserCollection userCollection : userCollections) {
-            result.add(userCollection.getCollection());
+            result.add(getCollectionFromUserCollection(userCollection));
         }
 
         return result;
@@ -296,10 +296,18 @@ public class CollectionDAO  {
 
         List<Collection> result = new ArrayList<>();
         for (UserCollection userCollection : userCollections) {
-            result.add(userCollection.getCollection());
+            result.add(getCollectionFromUserCollection(userCollection));
         }
 
         return result;
+    }
+
+    private Collection getCollectionFromUserCollection(UserCollection userCollection) {
+        Collection currentCollection = userCollection.getCollection();
+        int amountOfItems = getItems(currentCollection).size();
+
+        currentCollection.setCollectionSize(amountOfItems);
+        return currentCollection;
     }
 
     @Transactional
@@ -499,10 +507,15 @@ public class CollectionDAO  {
         return result;
     }
 
-    public void getAmountOfItemsInCollection(int id) {
+    public int getAmountOfItemsInCollection(int id) {
         // System.out.println("get amount of items in collection");
         // Collection c = getCollection(301);
         // System.out.println("Found collection with id: " + c.getId());
+        String query = "SELECT i FROM Item i LEFT JOIN FETCH i.collections INNER JOIN i.collections c WHERE c.id = :collectionId";
+        List<Item> result = em.createQuery(query, Item.class)
+            .setParameter("collectionId", id)
+            .getResultList();
+        return result.size();
     }
 
     @Transactional

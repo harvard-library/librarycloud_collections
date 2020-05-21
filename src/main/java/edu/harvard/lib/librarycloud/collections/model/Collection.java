@@ -168,10 +168,16 @@ public class Collection  {
         this.items = items;
     }
 
+    @Transient
+    private int collectionSize;
+
     @XmlElement(name="collectionSize")
     public int getCollectionSize() {
-      collectionDao.getAmountOfItemsInCollection(id);
-      return id;
+      return collectionSize;
+    }
+
+    public void setCollectionSize(int newCollectionSize) {
+      this.collectionSize = newCollectionSize;
     }
 
     public List<UserCollection> getUsers() {
