@@ -1,11 +1,6 @@
--- Add the api_id column to users and a unique constraint based on the combination of api_id and usertype_id
--- This is because a user could theoretically have the same email in different apps that use this api
-ALTER TABLE `user` ADD `api_id` varchar(45) DEFAULT NULL;
-ALTER TABLE `user` ADD CONSTRAINT UQ_EXTRNL_ID_USER_TYPE UNIQUE(api_id, usertype_id);
-
 -- Create the two current types of users, HDC and Staff
-INSERT INTO user_type (id, name, description) VALUES ('0', 'HDC', 'Harvard Digital Collections User');
 INSERT INTO user_type (id, name, description) VALUES ('1', 'Staff', 'Staff User');
+INSERT INTO user_type (id, name, description) VALUES ('2', 'HDC', 'Harvard Digital Collections User');
 
 -- All users in the db are currently staff, so update them accordingly
 ALTER TABLE `user` ADD CONSTRAINT FK_USER_USERTYPE_ID FOREIGN KEY (usertype_id) REFERENCES user_type(id);
@@ -15,7 +10,13 @@ UPDATE `user` SET usertype_id = '1';
 INSERT INTO role (id, description, name) VALUES (3, 'Admin user', 'admin');
 
 -- email should be unique
-ALTER TABLE `user` ADD UNIQUE INDEX `email_UNIQUE` (`email` ASC) VISIBLE;
+ALTER TABLE user ADD CONSTRAINT UQ_EMAIL_UNIQUE UNIQUE (email);
 
 -- set_spec should be unique
-ALTER TABLE `collection` ADD UNIQUE INDEX `set_spec_UNIQUE` (`set_spec` ASC) VISIBLE;
+ALTER TABLE collection ADD CONSTRAINT UQ_COLLECTION_SETSPEC UNIQUE (set_spec);
+
+-- After running this migration, you must manually insert an admin user with the following values:
+    -- role: 3
+    -- token: An admin API key of your choice
+    -- usertype_id: 2
+    -- email and name can be anything
