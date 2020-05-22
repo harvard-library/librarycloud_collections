@@ -25,9 +25,6 @@ public class User implements Principal {
 
   private String role;
 
-  @Column(name="api_id")
-  private int apiId;
-
  // @ManyToOne(cascade = CascadeType.ALL)
   @Column(name="usertype_id")
   //private UserType userType;
@@ -74,14 +71,6 @@ public class User implements Principal {
 
   public void setRole(String role) {
     this.role = role;
-  }
-
-  public int getApiId() {
-    return apiId;
-  }
-
-  public void setApiId(int apiId) {
-    this.apiId = apiId;
   }
 
   public int getUserType() {
