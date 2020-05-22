@@ -143,9 +143,6 @@ public class CollectionsAPI {
             throw new NotFoundException();
         }
 
-        Collection c = collectionDao.getCollection(301);
-        System.out.println("Found collection with id: " + c.getId());
-
         List<Collection> results;
         if (page == null || size == null) {
             results = collectionDao.getCollectionsForUser(user);
