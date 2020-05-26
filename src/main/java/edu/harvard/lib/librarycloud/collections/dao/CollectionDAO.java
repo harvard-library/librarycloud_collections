@@ -112,14 +112,24 @@ public class CollectionDAO  {
      * @param  external_item_id ID of the item to look for
      * @return                  List of Collections containing the item
      */
-    public List<Collection> getCollectionsForItem(User u, String external_item_id) {
+    public List<Collection> getCollectionsForItem(User u, String external_item_id, boolean shouldRightsBeAssigned) {
         String query = "SELECT DISTINCT c FROM Collection c INNER JOIN c.items i " +
             "WHERE i.itemId = :external_item_id";
         List<Collection> result = em.createQuery(query, Collection.class)
             .setParameter("external_item_id", external_item_id)
             .getResultList();
 
-        result = assignRights(result, u);
+        if (shouldRightsBeAssigned) {
+            result = assignRights(result, u);
+        }
+
+        return result;
+    }
+
+    public List<Collection> getCollectionsForItem(User u, String external_item_id) {
+        // Default for assigning rights is true, only leave them out if specifed not to
+        // (For example, if data is being used on the front end)
+        List<Collection> result = getCollectionsForItem(u, external_item_id, true);
 
         return result;
     }
