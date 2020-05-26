@@ -140,7 +140,7 @@ public class CollectionsAPI {
         User user = (User)securityContext.getUserPrincipal();
         
         if (user == null) {
-            throw new NotFoundException();
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
 
         List<Collection> results;
