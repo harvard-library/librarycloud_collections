@@ -170,7 +170,7 @@ public class CollectionsAPI {
         }
 
         if (collectionDao.getItem(id.toString()) == null) {
-            throw new LibraryCloudCollectionsException("Item not found", Status.UNAUTHORIZED);
+            throw new LibraryCloudCollectionsException("Item not found", Status.NOT_FOUND);
         }
 
         List<Collection> collections = collectionDao.getCollectionsForItem(user, id.toString(), false);
