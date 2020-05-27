@@ -337,7 +337,7 @@ public class CollectionsAPI {
     }
 
     /**
-     * Create a user and return api key
+     * Create a user and return api key - requires admin role
      */
     @POST @Path("collections/users")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
@@ -347,32 +347,17 @@ public class CollectionsAPI {
         User user = (User)securityContext.getUserPrincipal();
 
         if (user == null) { //user not found.
-            //String jsonErr = "{\"api-key\": \"" + newUser.getToken() + "\"}";
-            //return Response.status(Status.UNAUTHORIZED).entity("{\"error\":\"Not Authorized\"}").type(MediaType.APPLICATION_JSON).build();
             throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
-        //System.out.println("ROLE: " + user.getRole());
-        if (!user.getRole().equals("3")) { //user not admin status.
-            //return Response.status(Status.UNAUTHORIZED).entity("{\"error\":\"Not Authorized\"}").type(MediaType.APPLICATION_JSON).build();
+        if (!user.getRole().equals("3")) { //user not admin status - TO DO: check on "admin" rather than 3, need method
             throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
         try {
-            Integer id = collectionDao.createUser(newUser);
-            UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
-            URI uri = uriBuilder.path(id.toString()).build();
-            //System.out.println("URI: " + uri);
+            newUser = collectionDao.createUser(newUser);
         } catch (Exception e) {
-            //return Response.status(500).entity("{\"error\":\"Error, please contact LTS Support\"}").type(MediaType.APPLICATION_JSON).build();
             throw new LibraryCloudCollectionsException("Error, please contact LTS Support", Status.INTERNAL_SERVER_ERROR);
         }
-
-        //GenericEntity entity = new GenericEntity<User>(newUser){};
-        //return Response.ok(entity).build();
-        //return Response.created(uri).build();
-        //NewUser nu = new NewUser(newUser.getEmail(),newUser.getToken());
         GenericEntity entity = new GenericEntity<User>(newUser){};
-        //String json = "{\"api-key\": \"" + newUser.getToken() + "\"}";
-        //return Response.ok(json, MediaType.APPLICATION_JSON).build();
         return Response.ok(entity).build();
     }
 

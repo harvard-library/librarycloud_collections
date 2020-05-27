@@ -8,6 +8,7 @@ import java.security.*;
 @Table(name = "user_type")
 
 public class UserType {
+
     @Id
     @GeneratedValue
     private int id;
@@ -32,4 +33,6 @@ public class UserType {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public int getId() { return id; }
 }
