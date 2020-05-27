@@ -87,7 +87,7 @@ public class User implements Principal {
         this.userType = userType;
     }
 
-  @XmlElement(name="user-type")
+  @XmlElement(name="usertype-name")
   public String getUserTypeName() { return userTypeName; }
 
   public void setUserTypeName (String userTypeName) { this.userTypeName = userTypeName; }
