@@ -143,6 +143,24 @@ public class CollectionDAO  {
         }
     }
 
+    /**
+     * Get User from Email
+     * @param  email Email of the user to look for
+     * @return                  User for that email.
+     */
+
+    private User getUserForEmail(String email) {
+        String query = "SELECT u FROM User u " +
+                "WHERE u.email = :email";
+        try {
+            User result = em.createQuery(query, User.class)
+                    .setParameter("email", email).setMaxResults(1)
+                    .getSingleResult();
+            return result;
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
 
     /**
      * Retrieve items and associated collections based on list of IDs
@@ -254,12 +272,17 @@ public class CollectionDAO  {
     }
 
     @Transactional
-    public Integer createUser(User user) {
+    public User createUser(User user) {
+        if (getUserForEmail(user.getEmail()) != null) {
+            user = getUserForEmail(user.getEmail());
+        }
+        else {
         String key = UUID.randomUUID().toString();
         user.setToken(key);
+        }
         em.persist(user);
         em.flush();
-        return user.getId();
+        return user;
     }
 
     public User getUserById(int id) {
