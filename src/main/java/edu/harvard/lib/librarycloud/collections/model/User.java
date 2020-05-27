@@ -25,7 +25,13 @@ public class User implements Principal {
 
   private String role;
 
- // @ManyToOne(cascade = CascadeType.ALL)
+  //using this as a proxy for actual userType.name, when creating a new user
+  // could be replaced if we can get relationship for user-usertype tables working
+  // so that passing userType as name can auto set the usertype_id in user
+  @Transient
+  private String userTypeName;
+
+  // @ManyToOne(cascade = CascadeType.ALL)
   @Column(name="usertype_id")
   //private UserType userType;
   private int userType;
@@ -81,15 +87,11 @@ public class User implements Principal {
         this.userType = userType;
     }
 
-  /*public UserType getUserType() {
-    return userType;
-  }
+  @XmlElement(name="user-type")
+  public String getUserTypeName() { return userTypeName; }
 
-  public void setUserType(UserType userType) {
-    this.userType = userType;
-  }
+  public void setUserTypeName (String userTypeName) { this.userTypeName = userTypeName; }
 
-   */
   @XmlElement(name = "api-key")
   public String getToken() {return token;}
 

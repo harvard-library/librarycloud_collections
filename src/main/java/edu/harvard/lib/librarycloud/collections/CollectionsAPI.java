@@ -323,7 +323,7 @@ public class CollectionsAPI {
         if (user == null) { //user not found.
             throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
-        if (!user.getRole().equals("3")) { //user not admin status.
+        if (!user.getRole().equals("3")) { //user not admin status - TO DO: check on "admin" rather than 3, need method
             throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
         try {

@@ -277,12 +277,22 @@ public class CollectionDAO  {
             user = getUserForEmail(user.getEmail());
         }
         else {
-        String key = UUID.randomUUID().toString();
-        user.setToken(key);
+            String key = UUID.randomUUID().toString();
+            user.setToken(key);
+            UserType userType = getUserTypeForName(user.getUserTypeName());
+            user.setUserType(userType.getId());
         }
         em.persist(user);
         em.flush();
         return user;
+    }
+
+    public UserType getUserTypeForName(String name) {
+        String query = "select ut from UserType ut Where ut.name  = :name";
+        UserType userType = em.createQuery(query, UserType.class)
+                .setParameter("name", name)
+                .getSingleResult();
+        return userType;
     }
 
     public User getUserById(int id) {
