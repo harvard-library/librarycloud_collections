@@ -153,6 +153,32 @@ public class CollectionsAPI {
                 
         return results;
     }
+    
+    /*
+        * Get collections for a user's item
+    */
+    @GET @Path("collections/items/{id}/collections")
+    @JSONP(queryParam = "callback")
+    @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
+    public List<Collection> getCollectionsForItem(
+                                          @PathParam("id") Integer id
+                                          ) {
+        User user = (User)securityContext.getUserPrincipal();
+        
+        if (user == null) {
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
+        }
+
+        if (collectionDao.getItem(id.toString()) == null) {
+            throw new LibraryCloudCollectionsException("Item not found", Status.NOT_FOUND);
+        }
+
+        List<Collection> collections = collectionDao.getCollectionsForItem(user, id.toString(), false);
+        if (collections == null) {
+            throw new NotFoundException();
+        }
+        return collections;
+    }
 
     /**
      * Get items, and their associated collections.
