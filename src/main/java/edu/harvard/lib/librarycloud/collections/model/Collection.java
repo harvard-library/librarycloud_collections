@@ -12,8 +12,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.persistence.oxm.annotations.XmlInverseReference;
 
-
-
 /* Implements a subset of the Dublin Core Collections Application Profile (DCCAP)
 
   Complete list of fields in the DCCAP:
@@ -160,6 +158,18 @@ public class Collection  {
 
     public void setItems(List<Item> items) {
         this.items = items;
+    }
+
+    @Transient
+    private int collectionSize;
+
+    @XmlElement(name="collectionSize")
+    public int getCollectionSize() {
+      return collectionSize;
+    }
+
+    public void setCollectionSize(int newCollectionSize) {
+      this.collectionSize = newCollectionSize;
     }
 
     public List<UserCollection> getUsers() {
