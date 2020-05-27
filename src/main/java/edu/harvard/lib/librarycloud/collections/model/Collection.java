@@ -12,11 +12,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.persistence.oxm.annotations.XmlInverseReference;
 
-import edu.harvard.lib.librarycloud.collections.dao.*;
-import org.springframework.beans.factory.annotation.Autowired;
-
-
-
 /* Implements a subset of the Dublin Core Collections Application Profile (DCCAP)
 
   Complete list of fields in the DCCAP:
@@ -60,9 +55,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Table(name="collection")
 @XmlRootElement(namespace = "http://api.lib.harvard.edu/v2/collection/", name="collection")
 public class Collection  {
-    @Autowired
-    private CollectionDAO collectionDao = new CollectionDAO();
-
     @Transient
     Logger log = LogManager.getLogger(Collection.class);
 
