@@ -120,11 +120,22 @@ public class CollectionsAPI {
     public List<Collection> getCollection(
                                           @PathParam("id") Integer id
                                           ) {
+
+        User user = (User)securityContext.getUserPrincipal();
+
         Collection c = collectionDao.getCollection(id);
+
         if (c == null) {
             throw new NotFoundException();
         }
-        return Collections.singletonList(c);
+
+        if (c.isPublic()) {
+            return Collections.singletonList(c);
+        } else if (user != null && collectionDao.isUserOwner(c, user)) {
+            return Collections.singletonList(c);
+        }
+
+        throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
     }
 
     /**
