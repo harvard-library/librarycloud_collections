@@ -389,6 +389,10 @@ public class CollectionsAPI {
             throw new LibraryCloudCollectionsException("You have already created the maximum amount of collections", Status.UNAUTHORIZED);
         }
 
+        if (collectionDao.doesUserAlreadyHaveSetWithTitle(user, collection)) {
+            throw new LibraryCloudCollectionsException("A collection with that name already exists", Status.UNAUTHORIZED);
+        }
+
         Integer id = collectionDao.createCollection(collection, user);
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
         URI uri = uriBuilder.path(id.toString()).build();
