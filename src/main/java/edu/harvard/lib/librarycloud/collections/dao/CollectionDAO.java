@@ -607,7 +607,7 @@ public class CollectionDAO  {
         return result;
     }
 
-    private List<UserCollection> getUserCollectionsForUser(User u) {
+    public List<UserCollection> getUserCollectionsForUser(User u) {
         String query = "select uc from UserCollection uc WHERE uc.user.id = :userId";
         List<UserCollection> result = em.createQuery(query, UserCollection.class)
             .setParameter("userId", u.getId())
