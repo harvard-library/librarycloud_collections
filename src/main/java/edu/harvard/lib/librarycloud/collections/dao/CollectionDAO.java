@@ -366,7 +366,8 @@ public class CollectionDAO  {
     public Integer createCollection(Collection c, User u) {
         //first save the collection to generate an Id
         if (u.getUserType() == 2) {
-            String hdcSetSpec = "hdc_" + c.getSetName().toLowerCase().replace(" ", "").replace(":","") + "_" + u.getId();
+            String setName = c.getSetName();
+            String hdcSetSpec = "hdc_" + setName.toLowerCase().replace(" ", "").replace(":","") + "_" + setName.length() + "_" + u.getId();
             c.setSetSpec(hdcSetSpec);
         }
         em.persist(c);
@@ -607,7 +608,7 @@ public class CollectionDAO  {
         return result;
     }
 
-    private List<UserCollection> getUserCollectionsForUser(User u) {
+    public List<UserCollection> getUserCollectionsForUser(User u) {
         String query = "select uc from UserCollection uc WHERE uc.user.id = :userId";
         List<UserCollection> result = em.createQuery(query, UserCollection.class)
             .setParameter("userId", u.getId())
@@ -659,6 +660,30 @@ public class CollectionDAO  {
         return coll;
     }
 
+    public boolean hasUserCreatedMaxAllowedSets(User user) {
+        int userCollectionCount = getUserCollectionsForUser(user).size();
+        if (userCollectionCount >= 1000) {
+            // limit the amount of collections a user can create to the above value
+            return true;
+        }
+        return false;
+    }
 
+    public boolean doesUserAlreadyHaveSetWithTitle(User user, Collection collection) {
+        String query = "SELECT c FROM Collection c WHERE c.setName = :title";
+        List<Collection> foundCollections = em.createQuery(query, Collection.class)
+            .setParameter("title", collection.getSetName())
+            .getResultList();
 
+        for (Collection c : foundCollections) {
+            List<UserCollection> ucs = getUserCollections(c);
+            for (UserCollection uc : ucs) {
+                if (uc.getUser().getId() == user.getId()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 }
