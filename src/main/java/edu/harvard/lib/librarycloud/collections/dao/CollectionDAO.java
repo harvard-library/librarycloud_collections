@@ -659,6 +659,13 @@ public class CollectionDAO  {
         return coll;
     }
 
-
+    public boolean hasUserCreatedMaxAllowedSets(User user) {
+        int userCollectionCount = getUserCollectionsForUser(user).size();
+        if (userCollectionCount >= 1000) {
+            // limit the amount of collections a user can create to the above value
+            return true;
+        }
+        return false;
+    }
 
 }

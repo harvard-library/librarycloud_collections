@@ -385,9 +385,7 @@ public class CollectionsAPI {
             throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
 
-        int userCollectionCount = collectionDao.getUserCollectionsForUser(user).size();
-        if (userCollectionCount >= 1000) {
-            // limit the amount of collections a user can create to the above
+        if (collectionDao.hasUserCreatedMaxAllowedSets(user)) {
             throw new LibraryCloudCollectionsException("You have already created the maximum amount of collections", Status.UNAUTHORIZED);
         }
 
