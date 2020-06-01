@@ -366,6 +366,9 @@ public class CollectionsAPI {
         try {
             newUser = collectionDao.createUser(newUser);
         } catch (Exception e) {
+            if (!collectionDao.doesUserTypeExistByName(newUser.getUserTypeName())) {
+                throw new LibraryCloudCollectionsException("Error, incorrect user type. Please use a supported user type", Status.INTERNAL_SERVER_ERROR);
+            }
             throw new LibraryCloudCollectionsException("Error, please contact LTS Support", Status.INTERNAL_SERVER_ERROR);
         }
         GenericEntity entity = new GenericEntity<User>(newUser){};
