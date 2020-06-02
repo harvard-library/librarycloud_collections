@@ -29,7 +29,6 @@ import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;
 
-
 import edu.harvard.lib.librarycloud.collections.dao.*;
 import edu.harvard.lib.librarycloud.collections.model.*;
 
@@ -496,7 +495,7 @@ public class CollectionsAPI {
         // previous response, left in for now:
         // return Response.status(success ? Status.NO_CONTENT : Status.NOT_FOUND).build();
         if (success) {
-            return Response.ok("Collection " + id + " successfully deleted.").build();
+            return Response.ok(createSuccessResponse("Collection " + id + " successfully deleted.")).build();
         }
         return Response.status(Status.NOT_FOUND).build();
     }
@@ -560,7 +559,7 @@ public class CollectionsAPI {
 
         // previously returned the below, left in for now in case reverting is necessary
         // return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();
-        return Response.ok("Item " + external_item_id + " successfully deleted.").build();
+        return Response.ok(createSuccessResponse("Item " + external_item_id + " successfully deleted.")).build();
     }
 
 
@@ -720,5 +719,12 @@ public class CollectionsAPI {
 
     private boolean isAuthenticated(){
         return (securityContext.getUserPrincipal() != null);
+    }
+
+    private GenericEntity createSuccessResponse(String message) {
+        SuccessItem successItem = new SuccessItem(message);
+        GenericEntity entity = new GenericEntity<SuccessItem>(successItem){};
+
+        return entity;
     }
 }
