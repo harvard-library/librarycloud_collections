@@ -464,11 +464,8 @@ public class CollectionsAPI {
                                      ) {
         Collection c = collectionDao.getCollection(id);
 
-        if (c == null) {
-            return Response.status(Status.NOT_FOUND).build();
-        }
         if (!this.isOwner(c)) {
-            return Response.status(Status.UNAUTHORIZED).build();
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
         boolean success = true; //think positive
         List<Item> items = collectionDao.getItems(c);
@@ -496,8 +493,12 @@ public class CollectionsAPI {
             success = collectionDao.deleteCollection(id);
         }
 
-        /* Return 204 if successful, 404 if not found. */
-        return Response.status(success ? Status.NO_CONTENT : Status.NOT_FOUND).build();
+        // previous response, left in for now:
+        // return Response.status(success ? Status.NO_CONTENT : Status.NOT_FOUND).build();
+        if (success) {
+            return Response.ok("Collection " + id + " successfully deleted.").build();
+        }
+        return Response.status(Status.NOT_FOUND).build();
     }
 
     /**
