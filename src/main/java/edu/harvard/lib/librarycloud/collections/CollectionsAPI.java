@@ -336,7 +336,7 @@ public class CollectionsAPI {
         User user = (User)securityContext.getUserPrincipal();
 
         if (user == null) {
-            return Response.status(Status.NOT_FOUND).build();
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
 
         List<Collection> collections = collectionDao.getCollectionsForUser(user);

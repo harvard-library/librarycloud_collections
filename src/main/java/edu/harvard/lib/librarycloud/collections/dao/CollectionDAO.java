@@ -693,9 +693,6 @@ public class CollectionDAO  {
                 .setParameter("name", name)
                 .getResultList();
 
-        if (userTypes.size() > 0) {
-            return true;
-        }
-        return false;
+        return userTypes.size() > 0 ? true : false;
     }
 }
