@@ -547,17 +547,19 @@ public class CollectionsAPI {
         }
 
         boolean result = collectionDao.removeFromCollection(id, external_item_id);
-        if (result) {
-            try {
-                collectionsWorkflow.notify(external_item_id);
-            } catch (Exception e) {
-                log.error(e);
-                e.printStackTrace();
-            }
+        if (!result) {
+            throw new LibraryCloudCollectionsException("Item Not Found", Status.NOT_FOUND);
+        } 
+        
+        try {
+            collectionsWorkflow.notify(external_item_id);
+        } catch (Exception e) {
+            log.error(e);
         }
 
-        /* Return 204 if successful, 404 if not found. */
-        return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();
+        // previously returned the below, left in for now in case reverting is necessary
+        // return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();
+        return Response.ok("Item " + external_item_id + " successfully deleted.").build();
     }
 
 
