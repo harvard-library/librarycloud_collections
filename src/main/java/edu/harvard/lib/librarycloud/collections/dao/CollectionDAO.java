@@ -686,4 +686,13 @@ public class CollectionDAO  {
 
         return false;
     }
+
+    public boolean doesUserTypeExistByName(String name) {
+        String query = "select ut from UserType ut Where ut.name  = :name";
+        List<UserType> userTypes = em.createQuery(query, UserType.class)
+                .setParameter("name", name)
+                .getResultList();
+
+        return userTypes.size() > 0 ? true : false;
+    }
 }

@@ -29,7 +29,6 @@ import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;
 
-
 import edu.harvard.lib.librarycloud.collections.dao.*;
 import edu.harvard.lib.librarycloud.collections.model.*;
 
@@ -151,7 +150,7 @@ public class CollectionsAPI {
         User user = (User)securityContext.getUserPrincipal();
         
         if (user == null) {
-            throw new NotFoundException();
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
 
         List<Collection> results;
@@ -337,7 +336,7 @@ public class CollectionsAPI {
         User user = (User)securityContext.getUserPrincipal();
 
         if (user == null) {
-            return Response.status(Status.NOT_FOUND).build();
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
 
         List<Collection> collections = collectionDao.getCollectionsForUser(user);
@@ -366,6 +365,9 @@ public class CollectionsAPI {
         try {
             newUser = collectionDao.createUser(newUser);
         } catch (Exception e) {
+            if (!collectionDao.doesUserTypeExistByName(newUser.getUserTypeName())) {
+                throw new LibraryCloudCollectionsException("Error, incorrect user type. Please use a supported user type", Status.INTERNAL_SERVER_ERROR);
+            }
             throw new LibraryCloudCollectionsException("Error, please contact LTS Support", Status.INTERNAL_SERVER_ERROR);
         }
         GenericEntity entity = new GenericEntity<User>(newUser){};
@@ -461,11 +463,8 @@ public class CollectionsAPI {
                                      ) {
         Collection c = collectionDao.getCollection(id);
 
-        if (c == null) {
-            return Response.status(Status.NOT_FOUND).build();
-        }
         if (!this.isOwner(c)) {
-            return Response.status(Status.UNAUTHORIZED).build();
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
         boolean success = true; //think positive
         List<Item> items = collectionDao.getItems(c);
@@ -493,8 +492,12 @@ public class CollectionsAPI {
             success = collectionDao.deleteCollection(id);
         }
 
-        /* Return 204 if successful, 404 if not found. */
-        return Response.status(success ? Status.NO_CONTENT : Status.NOT_FOUND).build();
+        // previous response, left in for now:
+        // return Response.status(success ? Status.NO_CONTENT : Status.NOT_FOUND).build();
+        if (success) {
+            return Response.ok(createSuccessResponse("Collection " + id + " successfully deleted.")).build();
+        }
+        return Response.status(Status.NOT_FOUND).build();
     }
 
     /**
@@ -544,17 +547,19 @@ public class CollectionsAPI {
         }
 
         boolean result = collectionDao.removeFromCollection(id, external_item_id);
-        if (result) {
-            try {
-                collectionsWorkflow.notify(external_item_id);
-            } catch (Exception e) {
-                log.error(e);
-                e.printStackTrace();
-            }
+        if (!result) {
+            throw new LibraryCloudCollectionsException("Item Not Found", Status.NOT_FOUND);
+        } 
+        
+        try {
+            collectionsWorkflow.notify(external_item_id);
+        } catch (Exception e) {
+            log.error(e);
         }
 
-        /* Return 204 if successful, 404 if not found. */
-        return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();
+        // previously returned the below, left in for now in case reverting is necessary
+        // return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();
+        return Response.ok(createSuccessResponse("Item " + external_item_id + " successfully deleted.")).build();
     }
 
 
@@ -714,5 +719,12 @@ public class CollectionsAPI {
 
     private boolean isAuthenticated(){
         return (securityContext.getUserPrincipal() != null);
+    }
+
+    private GenericEntity createSuccessResponse(String message) {
+        SuccessItem successItem = new SuccessItem(message);
+        GenericEntity entity = new GenericEntity<SuccessItem>(successItem){};
+
+        return entity;
     }
 }
