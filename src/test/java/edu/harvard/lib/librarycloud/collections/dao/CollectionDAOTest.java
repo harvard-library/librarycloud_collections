@@ -33,6 +33,7 @@ import java.lang.reflect.*;
 import javax.sql.DataSource;
 
 import edu.harvard.lib.librarycloud.collections.model.User;
+import edu.harvard.lib.librarycloud.collections.model.UserType;
 import edu.harvard.lib.librarycloud.collections.model.Item;
 import edu.harvard.lib.librarycloud.collections.model.Collection;
 import edu.harvard.lib.librarycloud.collections.dao.CollectionDAO;
@@ -154,6 +155,39 @@ public class CollectionDAOTest {
         em.persist(u);
     }
 
+    @Before
+    public void setUpUserTypes() {
+        UserType ut = new UserType();
+        ut.setName("HDC");
+        ut.setDescription("Harvard Digital Collections");
+
+        em.persist(ut);
+    }
+
+    @Test
+    public void testCreateUserV1() {
+        User u = new User();
+        u.setName("Test User v1");
+        u.setEmail("testUserV1@testUserV1.com");
+        u.setUserTypeName("HDC");
+
+        Integer userId = collectionDao.createUserV1(u);
+        User foundUser = collectionDao.getUserById(userId);
+
+        assertEquals(foundUser.getName(), "Test User v1");
+    }
+
+    @Test
+    public void testCreateUser() {
+        User u = new User();
+        u.setName("Test User 3");
+        u.setEmail("anotherTestUser@anotherTestUser.com");
+
+        User newUser = collectionDao.createUser(u);
+        assertEquals(newUser.getName(), "Test User 3");
+        System.out.println("token length: " + newUser.getToken().length());
+    }
+
     @Test
     public void testGettingUserByAPIKey() {
         User u1 = collectionDao.getUserForAPIToken("00000");
@@ -163,8 +197,14 @@ public class CollectionDAOTest {
         assertEquals(nobody, null);
     }
 
+    @Test
+    public void testGettingUserByEmail() {
+        User u1 = collectionDao.getUserForEmail("foo@bar.com");
+        assertEquals(u1.getName(), "Test User");
 
-
+        User nobody = collectionDao.getUserForEmail("nobodysEmail@nobodysEmail.com");
+        assertEquals(nobody, null);
+    }
 
     @Test
     public void testCreatingFullCollectionRecords() {
