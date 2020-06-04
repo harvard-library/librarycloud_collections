@@ -417,7 +417,6 @@ public class CollectionsAPI {
                                      @PathParam("id") Integer id, Collection collection
                                      ) {
         if (!this.canEditItems(id)) {
-            //return Response.status(Status.UNAUTHORIZED).build();
             throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
 
         }
@@ -425,6 +424,9 @@ public class CollectionsAPI {
       if (result != null) {
           try {
               collectionsWorkflow.notify(result);
+              //Respond with the collection json info
+              GenericEntity entity = new GenericEntity<Collection>(result){};
+              return Response.ok(entity).build();
           } catch (Exception e) {
               log.error(e);
               e.printStackTrace();
