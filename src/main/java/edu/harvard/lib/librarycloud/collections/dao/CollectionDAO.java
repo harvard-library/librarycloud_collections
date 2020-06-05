@@ -345,7 +345,7 @@ public class CollectionDAO  {
         return result;
     }
 
-    private Collection getCollectionFromUserCollection(UserCollection userCollection) {
+    public Collection getCollectionFromUserCollection(UserCollection userCollection) {
         Collection currentCollection = userCollection.getCollection();
         int amountOfItems = getItems(currentCollection).size();
 
