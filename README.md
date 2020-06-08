@@ -33,6 +33,7 @@ The LibraryCloud Collections API provides access to metadata about groups of ite
     cp src/main/resources/librarycloud.collections.env.properties.example src/main/resources/librarycloud.collections.env.properties
 
 Upate  ```librarycloud.collections.env``` with the AWS keys and SQS environment name to use. (The SQS environment sets the prefix that's added to all LibraryCloud queues)
+```max_collections_per_user``` defines the maximum amount of collections that a user is allowed to create, and should be set to an integer of your choice.
 
 ### Database setup and migrations
 Database connection settings can be configured in the following places:

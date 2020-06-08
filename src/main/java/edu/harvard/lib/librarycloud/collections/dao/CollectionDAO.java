@@ -661,8 +661,9 @@ public class CollectionDAO  {
     }
 
     public boolean hasUserCreatedMaxAllowedSets(User user) {
+        Config config = Config.getInstance();
         int userCollectionCount = getUserCollectionsForUser(user).size();
-        if (userCollectionCount >= 1000) {
+        if (userCollectionCount >= config.maxCollectionsPerUser) {
             // limit the amount of collections a user can create to the above value
             return true;
         }
