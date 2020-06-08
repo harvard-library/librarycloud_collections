@@ -161,14 +161,14 @@ public class Collection  {
     }
 
     @Transient
-    private int collectionSize;
+    private Integer collectionSize;
 
     @XmlElement(name="collectionSize")
-    public int getCollectionSize() {
+    public Integer getCollectionSize() {
       return collectionSize;
     }
 
-    public void setCollectionSize(int newCollectionSize) {
+    public void setCollectionSize(Integer newCollectionSize) {
       this.collectionSize = newCollectionSize;
     }
 
