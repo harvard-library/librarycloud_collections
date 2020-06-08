@@ -69,6 +69,7 @@ public class Config {
     public String SQS_ENVIRONMENT;
     public Boolean REQUEST_LOGGING;
     public String HDC_KEY;
+    public int maxCollectionsPerUser;
 
     private static Config conf;
     public static String propFile = "librarycloud.collections.env.properties";
@@ -177,6 +178,7 @@ public class Config {
         SQS_ENVIRONMENT = props.getProperty("librarycloud.sqs.environment");
         REQUEST_LOGGING = "true".equals(props.getProperty("librarycloud.request_logging"));
         HDC_KEY = props.getProperty("hdc_key");
+        maxCollectionsPerUser = Integer.parseInt(props.getProperty("max_collections_per_user"));
     }
 
     public static synchronized Config getInstance() {

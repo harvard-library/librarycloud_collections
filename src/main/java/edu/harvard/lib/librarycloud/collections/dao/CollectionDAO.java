@@ -262,14 +262,23 @@ public class CollectionDAO  {
      * @param  id Internal ID of the collection
      * @return    Populated Collection, or null if not found
      */
-    public Collection getCollection(Integer id) {
+    public Collection getCollection(Integer id, boolean includeItemCount) {
         Collection result;
         try {
             result = em.find(Collection.class, id);
+            if (includeItemCount) {
+                int amountOfItems = getItems(result).size();
+                result.setCollectionSize(amountOfItems);
+            }
         } catch (NoResultException e) {
             return null;
         }
         return result;
+    }
+
+    public Collection getCollection(Integer id) {
+        // default is to not include item count
+        return getCollection(id, false);
     }
 
     @Transactional
@@ -661,8 +670,9 @@ public class CollectionDAO  {
     }
 
     public boolean hasUserCreatedMaxAllowedSets(User user) {
+        Config config = Config.getInstance();
         int userCollectionCount = getUserCollectionsForUser(user).size();
-        if (userCollectionCount >= 1000) {
+        if (userCollectionCount >= config.maxCollectionsPerUser) {
             // limit the amount of collections a user can create to the above value
             return true;
         }
