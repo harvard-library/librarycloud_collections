@@ -159,7 +159,7 @@ public class CollectionDAO  {
      * @return                  User for that email.
      */
 
-    private User getUserForEmail(String email) {
+    public User getUserForEmail(String email) {
         String query = "SELECT u FROM User u " +
                 "WHERE u.email = :email";
         try {
@@ -354,7 +354,7 @@ public class CollectionDAO  {
         return result;
     }
 
-    private Collection getCollectionFromUserCollection(UserCollection userCollection) {
+    public Collection getCollectionFromUserCollection(UserCollection userCollection) {
         Collection currentCollection = userCollection.getCollection();
         int amountOfItems = getItems(currentCollection).size();
 
