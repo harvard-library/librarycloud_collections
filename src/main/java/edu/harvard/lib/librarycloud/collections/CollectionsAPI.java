@@ -436,14 +436,14 @@ public class CollectionsAPI {
       if (result != null) {
           try {
               collectionsWorkflow.notify(result);
-              //Respond with the collection json info
-              GenericEntity entity = new GenericEntity<Collection>(result){};
-              return Response.ok(entity).build();
           } catch (Exception e) {
               log.error(e);
               e.printStackTrace();
           }
-          return Response.status(Status.NO_CONTENT).build();
+          //Respond with the collection json info
+	   	  GenericEntity entity = new GenericEntity<Collection>(result){};
+	   	  return Response.ok(entity).build();
+          //return Response.status(Status.NO_CONTENT).build();
         }
 
       return Response.status(Status.NOT_FOUND).build();
