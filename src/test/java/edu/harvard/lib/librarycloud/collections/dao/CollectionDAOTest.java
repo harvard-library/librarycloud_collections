@@ -214,7 +214,7 @@ public class CollectionDAOTest {
         assertTrue(beforeTime.before(createTime));
 
         c.setSetName("bar");
-        c = collectionDao.updateCollection(cId, c);
+        c = collectionDao.updateCollection(cId, c, u);
         Timestamp modifiedTime = new Timestamp(c.getModified().getTime());
 
         assertEquals(c.getSetName(), "bar");

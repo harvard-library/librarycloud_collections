@@ -385,7 +385,7 @@ public class CollectionDAO  {
     }
 
     @Transactional
-    public Collection updateCollection(Integer id, Collection c) {
+    public Collection updateCollection(Integer id, Collection c, User u) {
         Collection hydratedCollection;
         try {
             hydratedCollection = em.find(Collection.class, id);
@@ -399,7 +399,7 @@ public class CollectionDAO  {
             //TODO: Use getUserTypeName().equals("HDC") eventually but
         	//this also requires that it be populated in the user object when retrieving it.
         	//No time to do it right now.
-        	if (u.getUserType() == 2) {
+        	if (u.getUserType() != 2) {
             	propertiesToCopy.add("setSpec");
             }
             propertiesToCopy.add("dcp");

@@ -429,7 +429,8 @@ public class CollectionsAPI {
             throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
 
         }
-      Collection result = collectionDao.updateCollection(id,collection);
+      User user = (User)securityContext.getUserPrincipal();
+      Collection result = collectionDao.updateCollection(id,collection,user);
       if (result != null) {
           try {
               collectionsWorkflow.notify(result);
