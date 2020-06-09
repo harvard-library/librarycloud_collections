@@ -122,8 +122,14 @@ public class CollectionsAPI {
 
         User user = (User)securityContext.getUserPrincipal();
 
-        Collection c = collectionDao.getCollection(id);
-
+        Collection c;
+        // TODO: REFACTOR SO AS NOT TO USE THE ID OF THE USER TYPE (2 = "HDC" IN THIS CASE) AND USE THE NAME INSTEAD "HDC"
+        if (user.getUserType() == 2) {
+            c = collectionDao.getCollection(id, true);
+        } else {
+            c = collectionDao.getCollection(id);
+        }
+        
         if (c == null) {
             throw new NotFoundException();
         }
