@@ -201,6 +201,15 @@ public class CollectionsAPI {
     public List<Item> getItems(
                                @PathParam("external_ids") String external_ids
                                ) {
+        //Only an Admin should be able to view these, such as librarycloud ingest
+        User user = (User)securityContext.getUserPrincipal();
+
+        if (user == null) { //user not found.
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
+        }
+        if (!user.getRole().equals("3")) { //user not admin status - TO DO: check on "admin" rather than 3, need method
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
+        }
         List<String> external_id_list = new ArrayList<>(Arrays.asList(external_ids.split(",")));
         if (external_id_list.isEmpty()) {
             throw new NotFoundException();
