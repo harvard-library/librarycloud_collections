@@ -207,7 +207,8 @@ public class CollectionsAPI {
         if (user == null) { //user not found.
             throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
-        if (!user.getRole().equals("3")) { //user not admin status - TO DO: check on "admin" rather than 3, need method
+        //user not admin status - TODO: check on "admin" rather than 3, need method
+        if (user.getRole() == null || !user.getRole().equals("3")) { 
             throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
         List<String> external_id_list = new ArrayList<>(Arrays.asList(external_ids.split(",")));
@@ -368,7 +369,8 @@ public class CollectionsAPI {
         if (user == null) { //user not found.
             throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
-        if (!user.getRole().equals("3")) { //user not admin status - TO DO: check on "admin" rather than 3, need method
+      //user not admin status - TODO: check on "admin" rather than 3, need method
+        if (user.getRole() == null || !user.getRole().equals("3")) { 
             throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
         try {
