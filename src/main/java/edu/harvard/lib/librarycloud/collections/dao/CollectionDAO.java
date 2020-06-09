@@ -373,12 +373,17 @@ public class CollectionDAO  {
 
     @Transactional
     public Integer createCollection(Collection c, User u) {
-        //first save the collection to generate an Id
-        if (u.getUserType() == 2) {
+        
+        //Autogenerate the set spec for HDC users
+    	//TODO: Use getUserTypeName().equals("HDC") eventually but
+    	//this also requires that it be populated in the user object when retrieving it.
+    	//No time to do it right now.
+    	if (u.getUserType() == 2) {
             String setName = c.getSetName();
             String hdcSetSpec = "hdc_" + setName.toLowerCase().replace(" ", "").replace(":","") + "_" + setName.length() + "_" + u.getId();
             c.setSetSpec(hdcSetSpec);
         }
+        //first save the collection to generate an Id
         em.persist(c);
         //then get or create the role and assign the role to the user
         Role owner = getOrCreateRole(Collection.ROLE_OWNER);
@@ -389,7 +394,7 @@ public class CollectionDAO  {
     }
 
     @Transactional
-    public Collection updateCollection(Integer id, Collection c) {
+    public Collection updateCollection(Integer id, Collection c, User u) {
         Collection hydratedCollection;
         try {
             hydratedCollection = em.find(Collection.class, id);
@@ -399,7 +404,13 @@ public class CollectionDAO  {
             List<String> propertiesToCopy = new ArrayList<>();
             propertiesToCopy.add("setName");
             propertiesToCopy.add("setDescription");
-            propertiesToCopy.add("setSpec");
+            //Don't allow HDC to update the setSpec
+            //TODO: Use getUserTypeName().equals("HDC") eventually but
+        	//this also requires that it be populated in the user object when retrieving it.
+        	//No time to do it right now.
+        	if (u.getUserType() != 2) {
+            	propertiesToCopy.add("setSpec");
+            }
             propertiesToCopy.add("dcp");
             propertiesToCopy.add("public");
             propertiesToCopy.add("thumbnailUrn");

@@ -213,7 +213,8 @@ public class CollectionsAPI {
         if (user == null) { //user not found.
             throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
-        if (!user.getRole().equals("3")) { //user not admin status - TO DO: check on "admin" rather than 3, need method
+        //user not admin status - TODO: check on "admin" rather than 3, need method
+        if (user.getRole() == null || !user.getRole().equals("3")) { 
             throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
         List<String> external_id_list = new ArrayList<>(Arrays.asList(external_ids.split(",")));
@@ -374,7 +375,8 @@ public class CollectionsAPI {
         if (user == null) { //user not found.
             throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
-        if (!user.getRole().equals("3")) { //user not admin status - TO DO: check on "admin" rather than 3, need method
+      //user not admin status - TODO: check on "admin" rather than 3, need method
+        if (user.getRole() == null || !user.getRole().equals("3")) { 
             throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
         try {
@@ -432,11 +434,11 @@ public class CollectionsAPI {
                                      @PathParam("id") Integer id, Collection collection
                                      ) {
         if (!this.canEditItems(id)) {
-            //return Response.status(Status.UNAUTHORIZED).build();
             throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
 
         }
-      Collection result = collectionDao.updateCollection(id,collection);
+      User user = (User)securityContext.getUserPrincipal();
+      Collection result = collectionDao.updateCollection(id,collection,user);
       if (result != null) {
           try {
               collectionsWorkflow.notify(result);
@@ -444,7 +446,10 @@ public class CollectionsAPI {
               log.error(e);
               e.printStackTrace();
           }
-          return Response.status(Status.NO_CONTENT).build();
+          //Respond with the collection json info
+	   	  GenericEntity entity = new GenericEntity<Collection>(result){};
+	   	  return Response.ok(entity).build();
+          //return Response.status(Status.NO_CONTENT).build();
         }
 
       return Response.status(Status.NOT_FOUND).build();
