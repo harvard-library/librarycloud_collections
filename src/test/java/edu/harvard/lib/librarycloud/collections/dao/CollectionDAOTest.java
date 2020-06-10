@@ -43,8 +43,11 @@ import edu.harvard.lib.librarycloud.collections.dao.PageParams;
 
 @RunWith( SpringJUnit4ClassRunner.class )
 @ContextConfiguration( loader=AnnotationConfigContextLoader.class )
+@PropertySource("classpath:librarycloud.collections.test.env.properties")
 @Transactional
 public class CollectionDAOTest {
+    @Value( "${max_collections_per_user}" )
+    public int maxCollectionsPerUser;
 
     @Configuration
     @PropertySource("classpath:librarycloud.collections.test.env.properties")
@@ -138,7 +141,6 @@ public class CollectionDAOTest {
 
     @Before
     public void setUpTestUser() {
-
         User u = new User();
         u.setName("Test User");
         u.setEmail("foo@bar.com");
@@ -172,28 +174,16 @@ public class CollectionDAOTest {
     }
 
     @Test
-    public void testCreateUserV1AndGetUserById() {
-        User u = new User();
-        u.setName("Test User v1");
-        u.setEmail("testUserV1@testUserV1.com");
-
-        Integer userId = collectionDao.createUserV1(u);
-
-        User foundUser = collectionDao.getUserById(userId);
-
-        assertEquals(foundUser.getName(), "Test User v1");
-    }
-
-    @Test
-    public void testCreateUser() {
+    public void testCreateUserAndGetUserById() {
         User u = new User();
         u.setName("Test User 3");
         u.setEmail("anotherTestUser@anotherTestUser.com");
         u.setUserTypeName("HDC");
 
         User newUser = collectionDao.createUser(u);
-        assertEquals(newUser.getName(), "Test User 3");
-        assertEquals(newUser.getToken().length(), 36);
+        User foundUser = collectionDao.getUserById(newUser.getId());
+        assertEquals(foundUser.getName(), "Test User 3");
+        assertEquals(foundUser.getToken().length(), 36);
     }
 
     @Test
@@ -480,29 +470,26 @@ public class CollectionDAOTest {
         assertEquals(ut.getDescription(), "Harvard Digital Collections");
     }
 
-    // TODO: This test passes, but takes ages because of the hardcoded 1000 collections per user limit.
-    // We have an incoming branch that allows collection size to be configured in the properties file,
-    // and  this test should be updated to use that after its merged
+    @Test
+    public void testHasUserCreatedMaxSets() {
+        User u = collectionDao.getUserForAPIToken("00000");
 
-    // @Test
-    // public void testHasUserCreatedMaxSets() {
-    //     User u = collectionDao.getUserForAPIToken("00000");
-    //     for (int i = 1; i <= 1000; i++) {
-    //         Collection c = new Collection();
-    //         c.setSetName("title" + i);
-    //         c.setDcp(true);
-    //         c.setPublic(true);
-    //         c.setSetDescription("abstract");
-    //         c.setThumbnailUrn("http://thumb.com");
+        for (int i = 1; i <= maxCollectionsPerUser; i++) {
+            Collection c = new Collection();
+            c.setSetName("title" + i);
+            c.setDcp(true);
+            c.setPublic(true);
+            c.setSetDescription("abstract");
+            c.setThumbnailUrn("http://thumb.com");
 
-    //         collectionDao.createCollection(c, u);
-    //         if (i < 1000) {
-    //             assertEquals(collectionDao.hasUserCreatedMaxAllowedSets(u), false);
-    //         } else {
-    //             assertEquals(collectionDao.hasUserCreatedMaxAllowedSets(u), true);
-    //         }
-    //     }
-    // }
+            collectionDao.createCollection(c, u);
+            if (i < maxCollectionsPerUser) {
+                assertEquals(collectionDao.hasUserCreatedMaxAllowedSets(u, maxCollectionsPerUser), false);
+            } else {
+                assertEquals(collectionDao.hasUserCreatedMaxAllowedSets(u, maxCollectionsPerUser), true);
+            }
+        }
+    }
 
     @Test
     public void testDoesUserAlreadyHaveCollectionWithTitle() {
