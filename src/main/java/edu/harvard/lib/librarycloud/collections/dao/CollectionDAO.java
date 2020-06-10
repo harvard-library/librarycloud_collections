@@ -282,15 +282,6 @@ public class CollectionDAO  {
     }
 
     @Transactional
-    public Integer createUserV1(User user) {
-        Config config = Config.getInstance();
-        user.setToken(config.HDC_KEY);
-        em.persist(user);
-        em.flush();
-        return user.getId();
-    }
-
-    @Transactional
     public User createUser(User user) {
         if (getUserForEmail(user.getEmail()) != null) {
             user = getUserForEmail(user.getEmail());
@@ -680,14 +671,20 @@ public class CollectionDAO  {
         return coll;
     }
 
-    public boolean hasUserCreatedMaxAllowedSets(User user) {
-        Config config = Config.getInstance();
+    public boolean hasUserCreatedMaxAllowedSets(User user, int maxAllowedSets) {
+        // We're using this pattern so the method is testable without using the default config
+        // So far during normal use cases, only the user is used with this method
         int userCollectionCount = getUserCollectionsForUser(user).size();
-        if (userCollectionCount >= config.maxCollectionsPerUser) {
+        if (userCollectionCount >= maxAllowedSets) {
             // limit the amount of collections a user can create to the above value
             return true;
         }
         return false;
+    }
+
+    public boolean hasUserCreatedMaxAllowedSets(User user) {
+        Config config = Config.getInstance();
+        return hasUserCreatedMaxAllowedSets(user, config.maxCollectionsPerUser);
     }
 
     public boolean doesUserAlreadyHaveSetWithTitle(User user, Collection collection) {

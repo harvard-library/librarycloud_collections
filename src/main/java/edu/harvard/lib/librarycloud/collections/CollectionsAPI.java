@@ -331,21 +331,6 @@ public class CollectionsAPI {
     /**
      * Create a user
      */
-    @POST @Path("collections/users_v1")
-    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response createUserV1(User user) {
-/*
-        User user = (User)securityContext.getUserPrincipal();
-
-        if (user == null) { //user not found.
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
-*/
-        Integer id = collectionDao.createUserV1(user);
-        UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
-        URI uri = uriBuilder.path(id.toString()).build();
-        return Response.created(uri).build();
-    }
 
     @DELETE @Path("collections/users/")
     public Response deleteUser() {
