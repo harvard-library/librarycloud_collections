@@ -177,7 +177,7 @@ public class CollectionsAPI {
     @JSONP(queryParam = "callback")
     @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
     public List<Collection> getCollectionsForItem(
-                                          @PathParam("id") Integer id
+                                          @PathParam("id") String id
                                           ) {
         User user = (User)securityContext.getUserPrincipal();
         
@@ -193,7 +193,17 @@ public class CollectionsAPI {
         if (collections == null) {
             throw new NotFoundException();
         }
-        return collections;
+
+        List<Collection> collectionsThatBelongToUser = new ArrayList<Collection>();
+        for (Collection c : collections) {
+            if (collectionDao.isUserOwner(c, user)) {
+                collectionsThatBelongToUser.add(c);
+            }
+        }
+        if (collectionsThatBelongToUser.size() == 0) {
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
+        }
+        return collectionsThatBelongToUser;
     }
 
     /**
