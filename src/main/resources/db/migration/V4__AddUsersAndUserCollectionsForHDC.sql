@@ -3,8 +3,8 @@ INSERT INTO user_type (id, name, description) VALUES ('1', 'Staff', 'Staff User'
 INSERT INTO user_type (id, name, description) VALUES ('2', 'HDC', 'Harvard Digital Collections User');
 
 -- All users in the db are currently staff, so update them accordingly
-ALTER TABLE `user` ADD CONSTRAINT FK_USER_USERTYPE_ID FOREIGN KEY (usertype_id) REFERENCES user_type(id);
 UPDATE `user` SET usertype_id = '1';
+ALTER TABLE `user` ADD CONSTRAINT FK_USER_USERTYPE_ID FOREIGN KEY (usertype_id) REFERENCES user_type(id);
 
 -- Add admin role
 INSERT INTO role (id, description, name) VALUES (3, 'Admin user', 'admin');

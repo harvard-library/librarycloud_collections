@@ -141,9 +141,14 @@ public class CollectionDAOTest {
 
     @Before
     public void setUpTestUser() {
+        // For some reason, the tests will not run due to a  'The name "UserType" is not a recognized entity or identifier.'
+        // error when the following line is not in place
+        UserType ut = new UserType();
+
         User u = new User();
         u.setName("Test User");
         u.setEmail("foo@bar.com");
+        u.setUserType(1);
 
         try {
             Field f = u.getClass().getDeclaredField("token");
@@ -156,15 +161,6 @@ public class CollectionDAOTest {
         }
 
         em.persist(u);
-    }
-
-    @Before
-    public void setUpUserTypes() {
-        UserType ut = new UserType();
-        ut.setName("HDC");
-        ut.setDescription("Harvard Digital Collections");
-
-        em.persist(ut);
     }
 
     @Test
@@ -467,7 +463,7 @@ public class CollectionDAOTest {
     public void testGetUserTypeForName() {
         UserType ut = collectionDao.getUserTypeForName("HDC");
 
-        assertEquals(ut.getDescription(), "Harvard Digital Collections");
+        assertEquals(ut.getDescription(), "Harvard Digital Collections User");
     }
 
     @Test
