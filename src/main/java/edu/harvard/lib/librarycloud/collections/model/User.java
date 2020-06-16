@@ -12,7 +12,7 @@ public class User implements Principal {
   public User() {}
 
   @Id
-  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
 
   @Column(nullable = false)
