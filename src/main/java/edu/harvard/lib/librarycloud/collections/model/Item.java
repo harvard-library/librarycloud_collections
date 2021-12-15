@@ -14,7 +14,7 @@ public class Item  {
 
   public Item() {}
 
-  @Id @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
 
   @Column(nullable = false)

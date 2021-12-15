@@ -8,6 +8,7 @@ import java.util.List;
 import javax.persistence.*;
 import javax.persistence.criteria.*;
 import javax.persistence.metamodel.*;
+import java.util.UUID;
 
 import com.amazonaws.util.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -16,6 +17,7 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import edu.harvard.lib.librarycloud.collections.model.*;
+import edu.harvard.lib.librarycloud.collections.Config;
 
 public class CollectionDAO  {
     private Logger log = LogManager.getLogger(CollectionDAO.class);
@@ -75,7 +77,8 @@ public class CollectionDAO  {
             boolean dcpCondition = dcp;
             predicateANDList.add(criteriaBuilder.equal(collectionRoot.get("dcp"), dcpCondition));
         }
-
+        // Only show public sets
+        predicateANDList.add(criteriaBuilder.equal(collectionRoot.get("isPublic"), true));
 
         if (!sortField.equals("")) {
             if (!shouldSortAsc){
@@ -109,14 +112,24 @@ public class CollectionDAO  {
      * @param  external_item_id ID of the item to look for
      * @return                  List of Collections containing the item
      */
-    public List<Collection> getCollectionsForItem(User u, String external_item_id) {
+    public List<Collection> getCollectionsForItem(User u, String external_item_id, boolean shouldRightsBeAssigned) {
         String query = "SELECT DISTINCT c FROM Collection c INNER JOIN c.items i " +
             "WHERE i.itemId = :external_item_id";
         List<Collection> result = em.createQuery(query, Collection.class)
             .setParameter("external_item_id", external_item_id)
             .getResultList();
 
-        result = assignRights(result, u);
+        if (shouldRightsBeAssigned) {
+            result = assignRights(result, u);
+        }
+
+        return result;
+    }
+
+    public List<Collection> getCollectionsForItem(User u, String external_item_id) {
+        // Default for assigning rights is true, only leave them out if specifed not to
+        // (For example, if data is being used on the front end)
+        List<Collection> result = getCollectionsForItem(u, external_item_id, true);
 
         return result;
     }
@@ -140,6 +153,24 @@ public class CollectionDAO  {
         }
     }
 
+    /**
+     * Get User from Email
+     * @param  email Email of the user to look for
+     * @return                  User for that email.
+     */
+
+    public User getUserForEmail(String email) {
+        String query = "SELECT u FROM User u " +
+                "WHERE u.email = :email";
+        try {
+            User result = em.createQuery(query, User.class)
+                    .setParameter("email", email).setMaxResults(1)
+                    .getSingleResult();
+            return result;
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
 
     /**
      * Retrieve items and associated collections based on list of IDs
@@ -231,18 +262,118 @@ public class CollectionDAO  {
      * @param  id Internal ID of the collection
      * @return    Populated Collection, or null if not found
      */
-    public Collection getCollection(Integer id) {
+    public Collection getCollection(Integer id, boolean includeItemCount) {
         Collection result;
         try {
             result = em.find(Collection.class, id);
+            if (includeItemCount) {
+                int amountOfItems = getItems(result).size();
+                result.setCollectionSize(amountOfItems);
+            }
         } catch (NoResultException e) {
             return null;
         }
         return result;
     }
 
+    public Collection getCollection(Integer id) {
+        // default is to not include item count
+        return getCollection(id, false);
+    }
+
+    @Transactional
+    public User createUser(User user) {
+        if (getUserForEmail(user.getEmail()) != null) {
+            user = getUserForEmail(user.getEmail());
+        }
+        else {
+            String key = UUID.randomUUID().toString();
+            user.setToken(key);
+            UserType userType = getUserTypeForName(user.getUserTypeName());
+            user.setUserType(userType.getId());
+        }
+        em.persist(user);
+        em.flush();
+        return user;
+    }
+
+    public UserType getUserTypeForName(String name) {
+        String query = "select ut from UserType ut Where ut.name  = :name";
+        UserType userType = em.createQuery(query, UserType.class)
+                .setParameter("name", name)
+                .getSingleResult();
+        return userType;
+    }
+
+    public User getUserById(int id) {
+        String query = "select u from User u Where u.id = :id";
+        User founduser = em.createQuery(query, User.class)
+            .setParameter("id", id)
+            .getSingleResult();
+        return founduser;
+    }
+
+    public List<Collection> getCollectionsForUser(User user, PageParams page) {
+        int rowStart = (page.getPage() -1) * page.getSize();
+        int rowCount = page.getSize();
+        String query = "SELECT uc FROM UserCollection uc WHERE uc.user.id = :user_id ORDER BY uc.collection.modified DESC";
+        List<UserCollection> userCollections = em.createQuery(query, UserCollection.class)
+            .setParameter("user_id", user.getId())
+            .setFirstResult(rowStart)
+            .setMaxResults(rowCount)
+            .getResultList();
+        
+        List<Collection> result = new ArrayList<>();
+        for (UserCollection userCollection : userCollections) {
+            result.add(getCollectionFromUserCollection(userCollection));
+        }
+
+        return result;
+    }
+
+    public List<Collection> getCollectionsForUser(User user) {
+        String query = "SELECT uc FROM UserCollection uc WHERE uc.user.id = :user_id ORDER BY uc.collection.modified DESC";
+        List<UserCollection> userCollections = em.createQuery(query, UserCollection.class)
+            .setParameter("user_id", user.getId())
+            .getResultList();
+
+        List<Collection> result = new ArrayList<>();
+        for (UserCollection userCollection : userCollections) {
+            result.add(getCollectionFromUserCollection(userCollection));
+        }
+
+        return result;
+    }
+
+    public Collection getCollectionFromUserCollection(UserCollection userCollection) {
+        Collection currentCollection = userCollection.getCollection();
+        int amountOfItems = getItems(currentCollection).size();
+
+        currentCollection.setCollectionSize(amountOfItems);
+        return currentCollection;
+    }
+
+    @Transactional
+    public boolean deleteUser(Integer id) {
+        User user;
+        user = em.find(User.class, id);
+        em.remove(user);
+
+        return true;
+    }
+
     @Transactional
     public Integer createCollection(Collection c, User u) {
+        
+        //Autogenerate the set spec for HDC users
+    	//TODO: Use getUserTypeName().equals("HDC") eventually but
+    	//this also requires that it be populated in the user object when retrieving it.
+    	//No time to do it right now.
+    	if (u.getUserType() == 2) {
+            String setName = c.getSetName();
+            String hdcSetSpec = "hdc_" + setName.toLowerCase().replace(" ", "").replace(":","") + "_" + setName.length() + "_" + u.getId();
+            c.setSetSpec(hdcSetSpec);
+        }
         //first save the collection to generate an Id
         em.persist(c);
         //then get or create the role and assign the role to the user
@@ -254,7 +385,7 @@ public class CollectionDAO  {
     }
 
     @Transactional
-    public Collection updateCollection(Integer id, Collection c) {
+    public Collection updateCollection(Integer id, Collection c, User u) {
         Collection hydratedCollection;
         try {
             hydratedCollection = em.find(Collection.class, id);
@@ -264,7 +395,13 @@ public class CollectionDAO  {
             List<String> propertiesToCopy = new ArrayList<>();
             propertiesToCopy.add("setName");
             propertiesToCopy.add("setDescription");
-            propertiesToCopy.add("setSpec");
+            //Don't allow HDC to update the setSpec
+            //TODO: Use getUserTypeName().equals("HDC") eventually but
+        	//this also requires that it be populated in the user object when retrieving it.
+        	//No time to do it right now.
+        	if (u.getUserType() != 2) {
+            	propertiesToCopy.add("setSpec");
+            }
             propertiesToCopy.add("dcp");
             propertiesToCopy.add("public");
             propertiesToCopy.add("thumbnailUrn");
@@ -317,6 +454,19 @@ public class CollectionDAO  {
     }
 
     @Transactional
+    public boolean deleteCollections(List<Collection> collections) {
+        boolean allSuccess = true;
+        for (Collection collection : collections) {
+            boolean collectionSuccess = deleteCollection(collection.getId());
+            if (!collectionSuccess) {
+                allSuccess = false;
+            }
+        }
+
+        return allSuccess;
+    }
+
+    @Transactional
     public boolean addToCollection(Integer id, List<Item> items) {
         Collection c;
         c = em.find(Collection.class, id);
@@ -341,6 +491,8 @@ public class CollectionDAO  {
 
         return true;
     }
+
+
 
     @Transactional
     public boolean addToCollection(Integer id, Item item) {
@@ -467,7 +619,7 @@ public class CollectionDAO  {
         return result;
     }
 
-    private List<UserCollection> getUserCollectionsForUser(User u) {
+    public List<UserCollection> getUserCollectionsForUser(User u) {
         String query = "select uc from UserCollection uc WHERE uc.user.id = :userId";
         List<UserCollection> result = em.createQuery(query, UserCollection.class)
             .setParameter("userId", u.getId())
@@ -519,6 +671,46 @@ public class CollectionDAO  {
         return coll;
     }
 
+    public boolean hasUserCreatedMaxAllowedSets(User user, int maxAllowedSets) {
+        // We're using this pattern so the method is testable without using the default config
+        // So far during normal use cases, only the user is used with this method
+        int userCollectionCount = getUserCollectionsForUser(user).size();
+        if (userCollectionCount >= maxAllowedSets) {
+            // limit the amount of collections a user can create to the above value
+            return true;
+        }
+        return false;
+    }
 
+    public boolean hasUserCreatedMaxAllowedSets(User user) {
+        Config config = Config.getInstance();
+        return hasUserCreatedMaxAllowedSets(user, config.maxCollectionsPerUser);
+    }
 
+    public boolean doesUserAlreadyHaveSetWithTitle(User user, Collection collection) {
+        String query = "SELECT c FROM Collection c WHERE c.setName = :title";
+        List<Collection> foundCollections = em.createQuery(query, Collection.class)
+            .setParameter("title", collection.getSetName())
+            .getResultList();
+
+        for (Collection c : foundCollections) {
+            List<UserCollection> ucs = getUserCollections(c);
+            for (UserCollection uc : ucs) {
+                if (uc.getUser().getId() == user.getId()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public boolean doesUserTypeExistByName(String name) {
+        String query = "select ut from UserType ut Where ut.name  = :name";
+        List<UserType> userTypes = em.createQuery(query, UserType.class)
+                .setParameter("name", name)
+                .getResultList();
+
+        return userTypes.size() > 0 ? true : false;
+    }
 }

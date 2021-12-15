@@ -3,6 +3,7 @@ package edu.harvard.lib.librarycloud.collections.model;
 import java.util.*;
 import javax.persistence.*;
 import java.security.*;
+import javax.xml.bind.annotation.XmlElement;
 
 @Entity
 @Table(name = "user")
@@ -11,7 +12,7 @@ public class User implements Principal {
   public User() {}
 
   @Id
-  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
 
   @Column(nullable = false)
@@ -24,9 +25,16 @@ public class User implements Principal {
 
   private String role;
 
-  @ManyToOne
+  //using this as a proxy for actual userType.name, when creating a new user
+  // could be replaced if we can get relationship for user-usertype tables working
+  // so that passing userType as name can auto set the usertype_id in user
+  @Transient
+  private String userTypeName;
+
+  // @ManyToOne(cascade = CascadeType.ALL)
   @Column(name="usertype_id")
-  private UserType userType;
+  //private UserType userType;
+  private int userType;
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
   private List<UserCollection> collections;
@@ -71,12 +79,25 @@ public class User implements Principal {
     this.role = role;
   }
 
-  public UserType getUserType() {
-    return userType;
+  public int getUserType() {
+        return userType;
+    }
+
+  public void setUserType(int userType) {
+        this.userType = userType;
+    }
+
+  @XmlElement(name="usertype-name")
+  public String getUserTypeName() { return userTypeName; }
+
+  public void setUserTypeName (String userTypeName) { this.userTypeName = userTypeName; }
+
+  @XmlElement(name = "api-key")
+  public String getToken() {return token;}
+
+  public void setToken(String token) {
+    this.token = token;
   }
 
-  public void setUserType(UserType userType) {
-    this.userType = userType;
-  }
 
 }

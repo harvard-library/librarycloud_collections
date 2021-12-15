@@ -33,6 +33,7 @@ public class AuthorizationFilter implements ContainerRequestFilter {
     private CollectionDAO collectionDao;
 
     private static final String APIKEYHEADER = "X-LibraryCloud-API-Key";
+    private static final String APIAGENTHEADER = "X-LibraryCloud-API-AGENT";
 
 
   public AuthorizationFilter(){

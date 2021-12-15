@@ -33,6 +33,8 @@ import java.lang.reflect.*;
 import javax.sql.DataSource;
 
 import edu.harvard.lib.librarycloud.collections.model.User;
+import edu.harvard.lib.librarycloud.collections.model.UserType;
+import edu.harvard.lib.librarycloud.collections.model.UserCollection;
 import edu.harvard.lib.librarycloud.collections.model.Item;
 import edu.harvard.lib.librarycloud.collections.model.Collection;
 import edu.harvard.lib.librarycloud.collections.dao.CollectionDAO;
@@ -41,8 +43,11 @@ import edu.harvard.lib.librarycloud.collections.dao.PageParams;
 
 @RunWith( SpringJUnit4ClassRunner.class )
 @ContextConfiguration( loader=AnnotationConfigContextLoader.class )
+@PropertySource("classpath:librarycloud.collections.test.env.properties")
 @Transactional
 public class CollectionDAOTest {
+    @Value( "${max_collections_per_user}" )
+    public int maxCollectionsPerUser;
 
     @Configuration
     @PropertySource("classpath:librarycloud.collections.test.env.properties")
@@ -136,10 +141,14 @@ public class CollectionDAOTest {
 
     @Before
     public void setUpTestUser() {
+        // For some reason, the tests will not run due to a  'The name "UserType" is not a recognized entity or identifier.'
+        // error when the following line is not in place
+        UserType ut = new UserType();
 
         User u = new User();
         u.setName("Test User");
         u.setEmail("foo@bar.com");
+        u.setUserType(1);
 
         try {
             Field f = u.getClass().getDeclaredField("token");
@@ -155,6 +164,25 @@ public class CollectionDAOTest {
     }
 
     @Test
+    public void testDoesUserTypeExistByName() {
+        assertEquals(collectionDao.doesUserTypeExistByName("HDC"), true);
+        assertEquals(collectionDao.doesUserTypeExistByName("NonexistantName"), false);
+    }
+
+    @Test
+    public void testCreateUserAndGetUserById() {
+        User u = new User();
+        u.setName("Test User 3");
+        u.setEmail("anotherTestUser@anotherTestUser.com");
+        u.setUserTypeName("HDC");
+
+        User newUser = collectionDao.createUser(u);
+        User foundUser = collectionDao.getUserById(newUser.getId());
+        assertEquals(foundUser.getName(), "Test User 3");
+        assertEquals(foundUser.getToken().length(), 36);
+    }
+
+    @Test
     public void testGettingUserByAPIKey() {
         User u1 = collectionDao.getUserForAPIToken("00000");
         assertEquals(u1.getName(), "Test User");
@@ -163,11 +191,17 @@ public class CollectionDAOTest {
         assertEquals(nobody, null);
     }
 
+    @Test
+    public void testGettingUserByEmail() {
+        User u1 = collectionDao.getUserForEmail("foo@bar.com");
+        assertEquals(u1.getName(), "Test User");
 
-
+        User nobody = collectionDao.getUserForEmail("nobodysEmail@nobodysEmail.com");
+        assertEquals(nobody, null);
+    }
 
     @Test
-    public void testCreatingFullCollectionRecords() {
+    public void testCreatingAndRetrievingFullCollectionRecords() {
         User u = collectionDao.getUserForAPIToken("00000");
         Collection c = new Collection();
         c.setSetName("title");
@@ -184,6 +218,7 @@ public class CollectionDAOTest {
         Integer cId = collectionDao.createCollection(c, u);
 
         c = collectionDao.getCollection(cId);
+
         assertEquals("title", c.getSetName());
         assertEquals(true, c.isDcp());
         assertEquals(true, c.isPublic());
@@ -195,6 +230,16 @@ public class CollectionDAOTest {
         assertEquals("thomas cole", c.getContactName());
         assertEquals("hudson river school", c.getContactDepartment());
 
+        List<Collection> collections = collectionDao.getCollectionsForUser(u);
+        assertEquals(collections.size(), 1);
+
+        PageParams pageParams = new PageParams(1, 1);
+        collections = collectionDao.getCollectionsForUser(u, pageParams);
+        assertEquals(collections.size(), 1);
+
+        pageParams = new PageParams(2, 1);
+        collections = collectionDao.getCollectionsForUser(u, pageParams);
+        assertEquals(collections.size(), 0);
     }
 
     @Test
@@ -214,7 +259,7 @@ public class CollectionDAOTest {
         assertTrue(beforeTime.before(createTime));
 
         c.setSetName("bar");
-        c = collectionDao.updateCollection(cId, c);
+        c = collectionDao.updateCollection(cId, c, u);
         Timestamp modifiedTime = new Timestamp(c.getModified().getTime());
 
         assertEquals(c.getSetName(), "bar");
@@ -224,6 +269,25 @@ public class CollectionDAOTest {
         assertEquals(c.getSetName(), "bar");
     }
 
+    @Test
+    public void testGetCollectionFromUserCollection() {
+        User u = collectionDao.getUserForAPIToken("00000");
+
+        Collection c = new Collection();
+        c.setSetName("title");
+        c.setDcp(true);
+        c.setPublic(true);
+        c.setSetDescription("abstract");
+        c.setThumbnailUrn("http://thumb.com");
+
+        collectionDao.createCollection(c, u);
+
+        List<UserCollection> ucs = collectionDao.getUserCollectionsForUser(u);
+        assertEquals(ucs.size(), 1);
+
+        c = collectionDao.getCollectionFromUserCollection(ucs.get(0));
+        assertEquals(c.getSetName(), "title");
+    }
 
     @Test
     public void testDeletingCollectionsWithSharedItems() {
@@ -395,4 +459,82 @@ public class CollectionDAOTest {
         assertEquals(itemCount, new Integer(3));
     }
 
+    @Test
+    public void testGetUserTypeForName() {
+        UserType ut = collectionDao.getUserTypeForName("HDC");
+
+        assertEquals(ut.getDescription(), "Harvard Digital Collections User");
+    }
+
+    @Test
+    public void testHasUserCreatedMaxSets() {
+        User u = collectionDao.getUserForAPIToken("00000");
+
+        for (int i = 1; i <= maxCollectionsPerUser; i++) {
+            Collection c = new Collection();
+            c.setSetName("title" + i);
+            c.setDcp(true);
+            c.setPublic(true);
+            c.setSetDescription("abstract");
+            c.setThumbnailUrn("http://thumb.com");
+
+            collectionDao.createCollection(c, u);
+            if (i < maxCollectionsPerUser) {
+                assertEquals(collectionDao.hasUserCreatedMaxAllowedSets(u, maxCollectionsPerUser), false);
+            } else {
+                assertEquals(collectionDao.hasUserCreatedMaxAllowedSets(u, maxCollectionsPerUser), true);
+            }
+        }
+    }
+
+    @Test
+    public void testDoesUserAlreadyHaveCollectionWithTitle() {
+        User u = collectionDao.getUserForAPIToken("00000");
+
+        Collection c = new Collection();
+        c.setSetName("title");
+        c.setDcp(true);
+        c.setPublic(true);
+        c.setSetDescription("abstract");
+        c.setThumbnailUrn("http://thumb.com");
+
+        collectionDao.createCollection(c, u);
+        
+        c = new Collection();
+        c.setSetName("title");
+        c.setDcp(true);
+        c.setPublic(true);
+        c.setSetDescription("abstract");
+        c.setThumbnailUrn("http://thumb.com");
+
+        assertEquals(collectionDao.doesUserAlreadyHaveSetWithTitle(u, c), true);
+
+        c = new Collection();
+        c.setSetName("Different Title");
+        c.setDcp(true);
+        c.setPublic(true);
+        c.setSetDescription("abstract");
+        c.setThumbnailUrn("http://thumb.com");
+
+        assertEquals(collectionDao.doesUserAlreadyHaveSetWithTitle(u, c), false);
+    }
+
+    @Test
+    public void testDeleteUser() {
+        User u = collectionDao.getUserForAPIToken("00000");
+
+        Collection c = new Collection();
+        c.setSetName("title");
+        c.setDcp(true);
+        c.setPublic(true);
+        c.setSetDescription("abstract");
+        c.setThumbnailUrn("http://thumb.com");
+
+        Integer cId = collectionDao.createCollection(c, u);
+        c = collectionDao.getCollection(cId);
+
+        collectionDao.deleteUser(u.getId());
+        u = collectionDao.getUserForAPIToken("00000");
+        assertEquals(u, null);
+    }
 }

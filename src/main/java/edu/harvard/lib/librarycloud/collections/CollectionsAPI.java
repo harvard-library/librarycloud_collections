@@ -29,7 +29,6 @@ import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;
 
-
 import edu.harvard.lib.librarycloud.collections.dao.*;
 import edu.harvard.lib.librarycloud.collections.model.*;
 
@@ -120,11 +119,91 @@ public class CollectionsAPI {
     public List<Collection> getCollection(
                                           @PathParam("id") Integer id
                                           ) {
-        Collection c = collectionDao.getCollection(id);
+
+        User user = (User)securityContext.getUserPrincipal();
+
+        Collection c;
+        // TODO: REFACTOR SO AS NOT TO USE THE ID OF THE USER TYPE (2 = "HDC" IN THIS CASE) AND USE THE NAME INSTEAD "HDC"
+        if (user.getUserType() == 2) {
+            c = collectionDao.getCollection(id, true);
+        } else {
+            c = collectionDao.getCollection(id);
+        }
+        
         if (c == null) {
             throw new NotFoundException();
         }
-        return Collections.singletonList(c);
+
+        if (c.isPublic()) {
+            return Collections.singletonList(c);
+        } else if (user != null && collectionDao.isUserOwner(c, user)) {
+            return Collections.singletonList(c);
+        }
+
+        throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
+    }
+
+    /**
+     * Get collections for user
+     */
+    @GET @Path("collections/user")
+    @JSONP(queryParam = "callback")
+    @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
+    public List<Collection> getCollection(
+                                            @QueryParam("page") Integer page,
+                                            @QueryParam("size") Integer size
+                                            ) {
+        User user = (User)securityContext.getUserPrincipal();
+        
+        if (user == null) {
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
+        }
+
+        List<Collection> results;
+        if (page == null || size == null) {
+            results = collectionDao.getCollectionsForUser(user);
+        } else {
+            PageParams pageParams = new PageParams(page, size);
+            results = collectionDao.getCollectionsForUser(user, pageParams);
+        }
+                
+        return results;
+    }
+    
+    /*
+        * Get collections for a user's item
+    */
+    @GET @Path("collections/items/{id}/collections")
+    @JSONP(queryParam = "callback")
+    @Produces({"application/javascript", MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML + ";qs=0.9"})
+    public List<Collection> getCollectionsForItem(
+                                          @PathParam("id") String id
+                                          ) {
+        User user = (User)securityContext.getUserPrincipal();
+        
+        if (user == null) {
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
+        }
+
+        if (collectionDao.getItem(id.toString()) == null) {
+            throw new LibraryCloudCollectionsException("Item not found", Status.NOT_FOUND);
+        }
+
+        List<Collection> collections = collectionDao.getCollectionsForItem(user, id.toString(), false);
+        if (collections == null) {
+            throw new NotFoundException();
+        }
+
+        List<Collection> collectionsThatBelongToUser = new ArrayList<Collection>();
+        for (Collection c : collections) {
+            if (collectionDao.isUserOwner(c, user)) {
+                collectionsThatBelongToUser.add(c);
+            }
+        }
+        if (collectionsThatBelongToUser.size() == 0) {
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
+        }
+        return collectionsThatBelongToUser;
     }
 
     /**
@@ -138,6 +217,16 @@ public class CollectionsAPI {
     public List<Item> getItems(
                                @PathParam("external_ids") String external_ids
                                ) {
+        //Only an Admin should be able to view these, such as librarycloud ingest
+        User user = (User)securityContext.getUserPrincipal();
+
+        if (user == null) { //user not found.
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
+        }
+        //user not admin status - TODO: check on "admin" rather than 3, need method
+        if (user.getRole() == null || !user.getRole().equals("3")) { 
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
+        }
         List<String> external_id_list = new ArrayList<>(Arrays.asList(external_ids.split(",")));
         if (external_id_list.isEmpty()) {
             throw new NotFoundException();
@@ -250,6 +339,54 @@ public class CollectionsAPI {
     }
 
     /**
+     * Create a user
+     */
+
+    @DELETE @Path("collections/users/")
+    public Response deleteUser() {
+        User user = (User)securityContext.getUserPrincipal();
+
+        if (user == null) {
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
+        }
+
+        List<Collection> collections = collectionDao.getCollectionsForUser(user);
+        collectionDao.deleteCollections(collections);
+        boolean success = true;
+        collectionDao.deleteUser(user.getId());
+        return Response.status(success ? Status.NO_CONTENT : Status.NOT_FOUND).build();
+    }
+
+    /**
+     * Create a user and return api key - requires admin role
+     */
+    @POST @Path("collections/users")
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response createUser(User newUser) {
+
+        User user = (User)securityContext.getUserPrincipal();
+
+        if (user == null) { //user not found.
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
+        }
+      //user not admin status - TODO: check on "admin" rather than 3, need method
+        if (user.getRole() == null || !user.getRole().equals("3")) { 
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
+        }
+        try {
+            newUser = collectionDao.createUser(newUser);
+        } catch (Exception e) {
+            if (!collectionDao.doesUserTypeExistByName(newUser.getUserTypeName())) {
+                throw new LibraryCloudCollectionsException("Error, incorrect user type. Please use a supported user type", Status.INTERNAL_SERVER_ERROR);
+            }
+            throw new LibraryCloudCollectionsException("Error, please contact LTS Support", Status.INTERNAL_SERVER_ERROR);
+        }
+        GenericEntity entity = new GenericEntity<User>(newUser){};
+        return Response.ok(entity).build();
+    }
+
+    /**
      * Create a collection
      */
     @POST @Path("collections")
@@ -259,13 +396,25 @@ public class CollectionsAPI {
         User user = (User)securityContext.getUserPrincipal();
 
         if (user == null) { //user not found.
-            return Response.status(Status.UNAUTHORIZED).build();
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
+        }
+
+        if (collectionDao.hasUserCreatedMaxAllowedSets(user)) {
+            throw new LibraryCloudCollectionsException("You have already created the maximum amount of collections", Status.UNAUTHORIZED);
+        }
+
+        if (collectionDao.doesUserAlreadyHaveSetWithTitle(user, collection)) {
+            throw new LibraryCloudCollectionsException("A collection with that name already exists", Status.UNAUTHORIZED);
         }
 
         Integer id = collectionDao.createCollection(collection, user);
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
         URI uri = uriBuilder.path(id.toString()).build();
-        return Response.created(uri).build();
+        //System.out.println("COLL: " + collectionDao.getCollection(id));
+        Collection c = collectionDao.getCollection(id);
+        GenericEntity entity = new GenericEntity<Collection>(c){};
+        return Response.ok(entity).build();
+        //return Response.created(uri).build();
     }
 
 
@@ -280,9 +429,11 @@ public class CollectionsAPI {
                                      @PathParam("id") Integer id, Collection collection
                                      ) {
         if (!this.canEditItems(id)) {
-            return Response.status(Status.UNAUTHORIZED).build();
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
+
         }
-      Collection result = collectionDao.updateCollection(id,collection);
+      User user = (User)securityContext.getUserPrincipal();
+      Collection result = collectionDao.updateCollection(id,collection,user);
       if (result != null) {
           try {
               collectionsWorkflow.notify(result);
@@ -290,7 +441,10 @@ public class CollectionsAPI {
               log.error(e);
               e.printStackTrace();
           }
-          return Response.status(Status.NO_CONTENT).build();
+          //Respond with the collection json info
+	   	  GenericEntity entity = new GenericEntity<Collection>(result){};
+	   	  return Response.ok(entity).build();
+          //return Response.status(Status.NO_CONTENT).build();
         }
 
       return Response.status(Status.NOT_FOUND).build();
@@ -324,11 +478,8 @@ public class CollectionsAPI {
                                      ) {
         Collection c = collectionDao.getCollection(id);
 
-        if (c == null) {
-            return Response.status(Status.NOT_FOUND).build();
-        }
         if (!this.isOwner(c)) {
-            return Response.status(Status.UNAUTHORIZED).build();
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
         boolean success = true; //think positive
         List<Item> items = collectionDao.getItems(c);
@@ -356,8 +507,12 @@ public class CollectionsAPI {
             success = collectionDao.deleteCollection(id);
         }
 
-        /* Return 204 if successful, 404 if not found. */
-        return Response.status(success ? Status.NO_CONTENT : Status.NOT_FOUND).build();
+        // previous response, left in for now:
+        // return Response.status(success ? Status.NO_CONTENT : Status.NOT_FOUND).build();
+        if (success) {
+            return Response.ok(createSuccessResponse("Collection " + id + " successfully deleted.")).build();
+        }
+        return Response.status(Status.NOT_FOUND).build();
     }
 
     /**
@@ -370,13 +525,14 @@ public class CollectionsAPI {
                              ) {
 
         if (!this.canEditItems(id)) {
-            return Response.status(Status.UNAUTHORIZED).build();
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
 
         for (Item item : items) {
             boolean result = collectionDao.addToCollection(id, item);
             if (!result) {
-                return Response.status(Status.NOT_FOUND).build();
+                System.out.println("No such item: " + item);
+                //throw new LibraryCloudCollectionsException("Item Not Found", Status.NOT_FOUND);
             } else {
                 try {
                     collectionsWorkflow.notify(item.getItemId());
@@ -386,7 +542,10 @@ public class CollectionsAPI {
                 }
             }
         }
-        return Response.status(Status.NO_CONTENT).build();
+        Collection c = collectionDao.getCollection(id);
+        GenericEntity entity = new GenericEntity<Collection>(c){};
+        return Response.ok(entity).build();
+        //return Response.status(Status.NO_CONTENT).build();
     }
 
     /**
@@ -399,21 +558,23 @@ public class CollectionsAPI {
                                ) {
 
         if (!this.canEditItems(id)) {
-            return Response.status(Status.UNAUTHORIZED).build();
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
 
         boolean result = collectionDao.removeFromCollection(id, external_item_id);
-        if (result) {
-            try {
-                collectionsWorkflow.notify(external_item_id);
-            } catch (Exception e) {
-                log.error(e);
-                e.printStackTrace();
-            }
+        if (!result) {
+            throw new LibraryCloudCollectionsException("Item Not Found", Status.NOT_FOUND);
+        } 
+        
+        try {
+            collectionsWorkflow.notify(external_item_id);
+        } catch (Exception e) {
+            log.error(e);
         }
 
-        /* Return 204 if successful, 404 if not found. */
-        return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();
+        // previously returned the below, left in for now in case reverting is necessary
+        // return Response.status(result ? Status.NO_CONTENT : Status.NOT_FOUND).build();
+        return Response.ok(createSuccessResponse("Item " + external_item_id + " successfully deleted.")).build();
     }
 
 
@@ -427,7 +588,7 @@ public class CollectionsAPI {
                                      ) {
 
         if (!this.canEditItems(id)) {
-            return Response.status(Status.UNAUTHORIZED).build();
+            throw new LibraryCloudCollectionsException("Not Authorized", Status.UNAUTHORIZED);
         }
 
         boolean result;
@@ -573,5 +734,12 @@ public class CollectionsAPI {
 
     private boolean isAuthenticated(){
         return (securityContext.getUserPrincipal() != null);
+    }
+
+    private GenericEntity createSuccessResponse(String message) {
+        SuccessItem successItem = new SuccessItem(message);
+        GenericEntity entity = new GenericEntity<SuccessItem>(successItem){};
+
+        return entity;
     }
 }
