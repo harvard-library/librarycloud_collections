@@ -25,5 +25,6 @@ hs_err_pid*
 logs
 
 src/main/resources/librarycloud.collections.env.properties 
+src/test/resources/librarycloud.collections.test.env.properties 
 **/.DS_Store
 /.project
