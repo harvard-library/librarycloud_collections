@@ -11,8 +11,8 @@ The LibraryCloud Collections API provides access to metadata about groups of ite
 
 ## Prerequisites
 
-* Java 7
-* Tomcat
+* Java 8
+* Tomcat 8
 * Maven
 
 ### Maven installation (RHEL)
@@ -50,7 +50,7 @@ will need to 'baseline' the database first.
 
 ### Build and deploy the application with Maven
 
-Setup Tomcat users for deployment. Edit ```{TOMCAT7_PATH}/conf/tomcat-users.xml``` and add
+Setup Tomcat users for deployment. Edit ```{TOMCAT8_PATH}/conf/tomcat-users.xml``` and add
 
     <role rolename="manager-gui"/>
     <role rolename="manager-script"/>
@@ -73,3 +73,21 @@ The collections API will now be listening at http://SERVER:8080/v2/collections
 ### Setup authorized users
 
 Install MySQL client.
+
+### Testing app locally
+
+To test that app is building properly and running
+- set JAVA_HOME = openjdk8
+- in ./src/main/resources copy example props file
+- - `> cp librarycloud.collections.env.properties.example librarycloud.collections.env.properties`
+- configure db info for dev instance, ask developer (you can also configure a mysql db but more work)
+- run maven
+- - `> mvn clean install`
+- copy the war to local tomcat 8 (war should autoload if tomcat started)
+- - `> cp target/collections.war /PATH-TO-TOMCAT/webapps/`
+- check that dev collections load in browser
+- - http://localhost:8080/collections/v2/collections
+
+### Note on testing 20220926
+- Running mvn clean install proves build, and one set of tests
+- CollectionsDAO tests are currently set to @igonre for, need additional attention regarding setup of local mysql
