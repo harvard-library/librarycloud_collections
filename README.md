@@ -89,5 +89,5 @@ To test that app is building properly and running
 - - http://localhost:8080/collections/v2/collections
 
 ### Note on testing 20220926
-- Running mvn clean install proves build
+- Running `mvn clean install` proves build working properly
 - CollectionsDAO tests are currently set to @ignore for all tests, need additional attention regarding setup of local mysql
