@@ -11,7 +11,7 @@
 
     <properties>
         <jersey.version>2.13</jersey.version>
-        <spring.version>5.3.18</spring.version>
+        <spring.version>5.3.20</spring.version>
         <!--<spring.version>3.2.18.RELEASE</spring.version>-->
         <openjpa.version>3.2.2</openjpa.version>
         <aws-java-sdk.version>1.11.301</aws-java-sdk.version>
@@ -283,7 +283,7 @@
         <dependency>
           <groupId>commons-beanutils</groupId>
           <artifactId>commons-beanutils</artifactId>
-          <version>1.9.2</version>
+          <version>1.9.4</version>
         </dependency>
 
         <dependency>
