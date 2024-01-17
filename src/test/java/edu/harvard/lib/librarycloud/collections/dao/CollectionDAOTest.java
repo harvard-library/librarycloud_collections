@@ -23,9 +23,12 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 // import org.springframework.boot.test.autoconfigure.orm.jpa.*;
+import jakarta.persistence.EntityManagerFactory;
+import org.hibernate.jpa.HibernatePersistenceProvider;
+
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.JpaTransactionManager;
-import org.apache.openjpa.persistence.PersistenceProviderImpl;
+// import org.apache.openjpa.persistence.PersistenceProviderImpl;
 import org.flywaydb.core.Flyway;
 
 import javax.persistence.*;
@@ -89,7 +92,7 @@ public class CollectionDAOTest {
             LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
             em.setDataSource(dataSource());
             em.setPackagesToScan(new String[] { "edu.harvard.lib.librarycloud.collections.model.*" });
-            em.setPersistenceProvider(new PersistenceProviderImpl());
+            em.setPersistenceProvider(new HibernatePersistenceProvider());
             em.setPersistenceUnitName("integration-test");
 
             return em;

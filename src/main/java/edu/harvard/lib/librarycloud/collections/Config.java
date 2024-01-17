@@ -28,7 +28,10 @@
 package edu.harvard.lib.librarycloud.collections;
 
 import java.util.Properties;
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+// import org.apache.openjpa.persistence.PersistenceProviderImpl;
+import org.hibernate.jpa.HibernatePersistenceProvider;
 
 import org.springframework.context.annotation.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,7 +42,7 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.JpaTransactionManager;
-import org.apache.openjpa.persistence.PersistenceProviderImpl;
+import jakarta.persistence.spi.PersistenceProvider;
 import javax.sql.DataSource;
 import com.mchange.v2.c3p0.*;
 import java.beans.PropertyVetoException;
@@ -129,7 +132,7 @@ public class Config {
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dataSource());
         em.setPackagesToScan(new String[] { "edu.harvard.lib.librarycloud.collections.model" });
-        em.setPersistenceProvider(new PersistenceProviderImpl());
+        em.setPersistenceProvider(new HibernatePersistenceProvider());
         em.setPersistenceUnitName("production");
 
         return em;
