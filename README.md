@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/harvard-library/librarycloud_collections.png?branch=develop)](https://travis-ci.org/harvard-library/librarycloud_collections)
 
+THIS IS AN ARCHIVED PROJECT
+
 LibraryCloud Collections API
 ============================
 
